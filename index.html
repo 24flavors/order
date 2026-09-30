@@ -229,7 +229,7 @@ textarea{min-height:76px;resize:vertical}
 // ══════════════ 正式上線設定 ══════════════
 //   API_URL：雲端訂單中心的網址（Apps Script 部署後的 …/exec）。留空＝試玩模式（訂單只存在手機）
 //   LIFF_ID：LINE Login channel 裡 LIFF 的 ID。留空＝用瀏覽器測試（雲端要開 TEST_MODE）
-var LIVE = { url: 'https://script.google.com/macros/s/AKfycbzw2o8UWTZHzgajr9oFeae4-xuBOFCG-DQnUYewOFhmY7s-DWFtFHCXnljX3KbJmCCA/exec', liffId: '' };
+var LIVE = { url: 'https://script.google.com/macros/s/AKfycbzw2o8UWTZHzgajr9oFeae4-xuBOFCG-DQnUYewOFhmY7s-DWFtFHCXnljX3KbJmCCA/exec', liffId: '2011807465-an0fUe9V' };
 // ═════════════════════════════════════════
 var OPEN_MIN = 16 * 60 + 30;   // 16:30 開始取餐
 var LAST_MIN = 23 * 60 + 30;   // 23:30 最後取餐
@@ -911,8 +911,9 @@ if (LIVE.url) (function () {
       if (j.ok && j.lineName) { LINE_NAME = j.lineName; DEMO.lineName = j.lineName; }
     })]).then(function () {
       READY = true;
-      var q = new URLSearchParams(location.search).get('order');
-      if (q) go('#/order/' + q); else render();
+      // 從 LINE 圖文選單或訊息連結開啟：?order=訂單編號 → 那張單；?page=orders → 我的訂單
+      var sp = new URLSearchParams(location.search), q = sp.get('order');
+      if (q) go('#/order/' + q); else if (sp.get('page') === 'orders') go('#/orders'); else render();
     }).catch(function () { SHOP = { state: 'offline', queue: 0 }; READY = true; render(); });
     setInterval(function () { loadMenu().then(refreshUI); }, 30000);
     setInterval(function () {
