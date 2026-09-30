@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>24味滷味 線上點餐</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   24味滷味 線上點餐 — 示範版
+   正式版會改成：菜單、售完、排隊從雲端讀取；LINE 身分由 LIFF 提供
+   ============================================================ */
+:root{
+  --bg:#F2F1EF; --surface:#FFFFFF; --ink:#231713; --muted:#6D605A; --line:#E2DDD9;
+  --accent:#B3241A; --accent-ink:#FFFFFF; --accent-soft:#F6E3E0;
+  --ok:#2E7A38; --ok-soft:#E1F0E2; --warn:#8A5A00; --warn-soft:#F7EBD2;
+  --ticket:#FFFFFF; --shadow:0 1px 0 rgba(35,23,19,.06);
+  --font:"Noto Sans TC","Noto Sans Thai","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16110E; --surface:#211A16; --ink:#F2EAE5; --muted:#B2A59D; --line:#382E28;
+    --accent:#E2493D; --accent-ink:#FFFFFF; --accent-soft:#3A1E1A;
+    --ok:#6FC27B; --ok-soft:#1D2E1F; --warn:#E3B45C; --warn-soft:#33281A;
+    --ticket:#28201B; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16110E; --surface:#211A16; --ink:#F2EAE5; --muted:#B2A59D; --line:#382E28;
+  --accent:#E2493D; --accent-ink:#FFFFFF; --accent-soft:#3A1E1A;
+  --ok:#6FC27B; --ok-soft:#1D2E1F; --warn:#E3B45C; --warn-soft:#33281A;
+  --ticket:#28201B; --shadow:none;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+
+/* ---------- 頂部 ---------- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:8px;height:56px}
+.brand{font-weight:900;font-size:20px;letter-spacing:.02em;margin-right:auto;white-space:nowrap}
+.brand small{font-weight:500;font-size:13px;color:var(--muted);margin-left:6px;letter-spacing:0}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;line-height:1.2;position:relative;white-space:nowrap;flex:none}
+@media (max-width:430px){.brand small{display:none}.pill{padding:6px 10px;font-size:13px}.brand{font-size:18px}}
+.pill.test{border-style:dashed;color:var(--muted)}
+.badge{position:absolute;top:-6px;right:-6px;background:var(--accent);color:var(--accent-ink);border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 4px;font-weight:700}
+select.pill{appearance:none;-webkit-appearance:none;padding-right:12px}
+
+/* ---------- 狀態列 ---------- */
+.strip{margin:12px 0 4px;padding:12px 14px;border-radius:12px;font-size:15px;background:var(--surface);border:1px solid var(--line)}
+.strip strong{font-weight:700}
+.strip.paused{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.demo-note{font-size:12.5px;color:var(--muted);margin:8px 2px 0}
+
+/* ---------- 菜單 ---------- */
+.menu{list-style:none;margin:8px 0 0;padding:0;background:var(--surface);border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:14px;border-top:1px solid var(--line);min-height:72px}
+.row:first-child{border-top:0}
+.row .no{font-size:12px;color:var(--muted);width:22px;flex:none;font-variant-numeric:tabular-nums}
+.row .info{flex:1;min-width:0}
+.row .nm{font-weight:700;font-size:17px;line-height:1.3}
+.row .sub{font-size:13px;color:var(--muted)}
+.row .price{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.sold .nm,.row.sold .price{color:var(--muted)}
+.row.sold .nm{text-decoration:line-through;text-decoration-thickness:1px}
+.soldtag{display:inline-block;font-size:12px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px;text-decoration:none;vertical-align:2px}
+
+.step{display:flex;align-items:center;gap:0;flex:none}
+.step button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;font-size:22px;line-height:1;display:grid;place-items:center;padding:0}
+.step button.add{background:var(--ink);color:var(--bg)}
+.step button:disabled{opacity:.3;cursor:not-allowed}
+.step .q{width:34px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- 下方購物車 ---------- */
+.spacer{height:140px}
+.cartbar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.cartbar .wrap{padding-top:10px;padding-bottom:12px}
+.gifthint{font-size:13.5px;color:var(--muted);margin-bottom:8px}
+.gifthint.got{color:var(--ok);font-weight:700}
+.cartline{display:flex;align-items:center;gap:12px}
+.cartline .sum{flex:1}
+.cartline .sum b{font-size:22px;font-variant-numeric:tabular-nums}
+.cartline .sum span{color:var(--muted);font-size:14px;margin-left:6px}
+.btn{border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px;padding:14px 22px;min-height:52px}
+.btn.wide{width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- 結帳 ---------- */
+.head2{display:flex;align-items:center;gap:10px;margin:14px 0 6px}
+.back{border:0;background:transparent;font-size:15px;color:var(--muted);padding:8px 0}
+h2{font-size:22px;font-weight:900;margin:6px 0 12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{font-size:15px;font-weight:700;margin:0 0 10px;color:var(--muted)}
+.opt{margin-bottom:12px}
+.opt:last-child{margin-bottom:0}
+.opt .lb{font-size:14px;font-weight:700;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:transparent;border-radius:10px;padding:8px 12px;font-size:15px;min-height:42px}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+textarea,input[type=text],input[type=tel]{width:100%;border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:12px;font-size:16px}
+textarea{min-height:76px;resize:vertical}
+.count{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.err{background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:12px;font-size:15px;margin-bottom:12px;font-weight:700}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.lines{list-style:none;margin:0;padding:0}
+.lines li{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--line)}
+.lines li:first-child{border-top:0}
+.lines .n{flex:1;min-width:0}
+.lines .n small{display:block;color:var(--muted);font-size:12.5px}
+.lines .a{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.lines .warn{color:var(--accent);font-size:12.5px;font-weight:700}
+.tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px solid var(--ink);margin-top:8px;padding-top:10px;font-weight:900;font-size:20px}
+.pay{font-size:14px;color:var(--muted);margin-top:4px}
+.slotsel{margin-top:10px}
+.slotsel select{width:100%;border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:12px;font-size:16px}
+
+/* ---------- 取餐單（收據） ---------- */
+.ticket{background:var(--ticket);margin:16px 0 8px;padding:22px 20px 34px;position:relative;box-shadow:var(--shadow);
+  -webkit-mask:radial-gradient(circle 7px at 50% 100%,transparent 6.5px,#000 7px) 0 0/18px 100% repeat-x;
+          mask:radial-gradient(circle 7px at 50% 100%,transparent 6.5px,#000 7px) 0 0/18px 100% repeat-x;
+  border-radius:14px 14px 0 0}
+.ticket .shop{font-size:14px;color:var(--muted);text-align:center}
+.ticket .lab{font-size:13px;color:var(--muted);text-align:center;margin-top:14px}
+.ticket .big{font-size:76px;font-weight:900;line-height:1;text-align:center;letter-spacing:.01em;font-variant-numeric:tabular-nums;margin:4px 0 2px}
+.ticket .who{text-align:center;font-size:17px;font-weight:700}
+.ticket .who span{font-weight:400;color:var(--muted);margin-left:8px;font-variant-numeric:tabular-nums}
+.ticket .when{margin:18px 0 6px;text-align:center;border-top:1.5px dashed var(--line);border-bottom:1.5px dashed var(--line);padding:12px 0}
+.ticket .when b{display:block;font-size:34px;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.1}
+.ticket .when small{color:var(--muted);font-size:13px}
+.status{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;margin:12px 0 4px;font-size:16px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.status.ready{color:var(--ok)}
+.status.ready .dot{background:var(--ok)}
+.status.live .dot{background:var(--warn);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.status.live .dot{animation:none}}
+.ticket .opts{font-size:14px;color:var(--muted);margin-top:8px}
+.ticket .noteline{font-size:14px;margin-top:6px}
+.showthis{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 16px}
+
+/* ---------- 我的訂單 ---------- */
+.olist{list-style:none;margin:0;padding:0}
+.olist button{width:100%;text-align:left;display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.olist .no{font-size:26px;font-weight:900;min-width:92px;font-variant-numeric:tabular-nums}
+.olist .meta{flex:1;font-size:14px;color:var(--muted)}
+.olist .meta b{color:var(--ink);font-size:15px}
+.empty{text-align:center;color:var(--muted);padding:40px 0}
+
+/* ---------- 測試面板 ---------- */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:none}
+.sheet-bg.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--surface);border-radius:18px 18px 0 0;max-height:86%;overflow:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px));display:none}
+.sheet.on{display:block}
+.sheet .wrap{padding:0}
+.sheet h3{font-size:18px;margin:4px 0 4px}
+.sheet .sec{border-top:1px solid var(--line);padding:12px 0}
+.sheet .sec:first-of-type{border-top:0}
+.sheet .sec > b{display:block;font-size:14px;margin-bottom:8px}
+.sheet .rowx{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px}
+.sheet input[type=number],.sheet input[type=time],.sheet select{border:1.5px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 8px;font-size:15px}
+.sheet input[type=number]{width:80px}
+.soldgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.soldgrid label{display:flex;align-items:center;gap:6px;font-size:14px}
+.msg{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:10px;font-size:13.5px;border:1px solid var(--line)}
+.small-btns{display:flex;flex-wrap:wrap;gap:6px}
+.small-btns button{border:1.5px solid var(--line);background:transparent;border-radius:8px;padding:6px 10px;font-size:14px}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;display:none;max-width:90%}
+.toast.on{display:block}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">24味滷味<small id="t-sub"></small></div>
+    <button class="pill test" id="btn-test" type="button">測試</button>
+    <button class="pill" id="btn-orders" type="button"></button>
+    <select class="pill" id="lang" aria-label="Language">
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+      <option value="vi">Tiếng Việt</option>
+      <option value="th">ไทย</option>
+    </select>
+  </div>
+</header>
+
+<main id="app"></main>
+<div id="cartbar"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="測試面板"></div>
+
+<script>
+/* ============================================================
+   設定值（正式版由點餐機同步到雲端，這裡寫死做示範）
+   ============================================================ */
+var OPEN_MIN = 16 * 60 + 30;   // 16:30 開始取餐
+var LAST_MIN = 23 * 60 + 30;   // 23:30 最後取餐
+var MIN_LEAD = 15;             // 盡快：至少 15 分鐘
+var PER_ORDER = 5;             // 每張單預估製作分鐘
+var OPEN_LIMIT = 2;            // 同一 LINE 帳號最多未取單
+var NOTE_MAX = 50;
+
+// 示範菜單（名稱取自現有菜單；價格、克數為示範，正式版讀 menu.json）
+var MENU = [
+  {id:'01',name:'蜂巢牛肚',price:60,portion:'50g',i:{en:'Beef Honeycomb Tripe',vi:'Lá sách bò tổ ong',th:'ผ้าขี้ริ้ววัว'}},
+  {id:'02',name:'豬耳朵',price:50,portion:'50g',i:{en:'Pig Ear',vi:'Tai heo',th:'หูหมู'}},
+  {id:'03',name:'豬腱子肉',price:55,portion:'40g',i:{en:'Pork Shank',vi:'Thịt bắp giò heo',th:'เนื้อน่องหมู'}},
+  {id:'04',name:'鴨胗',price:45,portion:'50g',i:{en:'Duck Gizzard',vi:'Mề vịt',th:'กึ๋นเป็ด'}},
+  {id:'05',name:'鴨心',price:40,portion:'4顆',i:{en:'Duck Heart',vi:'Tim vịt',th:'หัวใจเป็ด'}},
+  {id:'06',name:'百頁豆腐',price:30,portion:'50g',i:{en:'Thousand-layer Tofu',vi:'Đậu hũ ngàn lớp',th:'เต้าหู้พันชั้น'}},
+  {id:'07',name:'豆干',price:25,portion:'50g',i:{en:'Dried Tofu',vi:'Đậu hũ khô',th:'เต้าหู้แห้ง'}},
+  {id:'08',name:'手工貢丸',price:30,portion:'2顆',i:{en:'Handmade Pork Ball',vi:'Thịt viên heo thủ công',th:'ลูกชิ้นหมูทำมือ'}},
+  {id:'09',name:'麵香竹腸',price:30,portion:'70g',i:{en:'Wheat Gluten Roll',vi:'Mì căn ống tre',th:'หมี่กึง'}},
+  {id:'10',name:'招牌米血',price:30,portion:'90g',i:{en:'Pig Blood Rice Cake',vi:'Bánh nếp tiết heo',th:'ข้าวเหนียวเลือดหมู'}},
+  {id:'11',name:'手工甜不辣',price:30,portion:'2片',i:{en:'Taiwanese Fish Cake',vi:'Chả cá ngọt Đài Loan',th:'ทอดมันปลาไต้หวัน'}},
+  {id:'12',name:'芋頭粿',price:35,portion:'85g',i:{en:'Savory Taro Cake',vi:'Bánh khoai môn',th:'ขนมเผือก'}},
+  {id:'13',name:'蒟蒻腰花',price:30,portion:'3顆',i:{en:'Konjac',vi:'Khoai nưa',th:'บุกก้อน'}},
+  {id:'14',name:'高麗菜',price:30,portion:'100g',i:{en:'Cabbage',vi:'Bắp cải',th:'กะหล่ำปลี'}},
+  {id:'15',name:'豆皮',price:30,portion:'70g',i:{en:'Tofu Skin',vi:'Tàu hũ ky',th:'ฟองเต้าหู้'}},
+  {id:'16',name:'海帶',price:25,portion:'70g',i:{en:'Kelp',vi:'Rong biển',th:'สาหร่ายเคลป์'}},
+  {id:'17',name:'玉米筍',price:30,portion:'70g',i:{en:'Baby Corn',vi:'Bắp non',th:'ข้าวโพดอ่อน'}},
+  {id:'18',name:'花椰菜',price:35,portion:'100g',i:{en:'Broccoli',vi:'Bông cải xanh',th:'บรอกโคลี'}}
+];
+
+// 口味選項（同自助機）
+var OPTIONS = [
+  {key:'pickle',  title:'酸菜', choices:['加酸菜','不加酸菜'], def:'加酸菜'},
+  {key:'scallion',title:'蔥',   choices:['加蔥','不加蔥'], def:'加蔥'},
+  {key:'sesame',  title:'香油', choices:['加香油','不加香油'], def:'加香油'},
+  {key:'sauce',   title:'醬',   choices:['醬正常','醬多','醬少','不加醬'], def:'醬正常'},
+  {key:'spice',   title:'辣度', choices:['不加辣','小辣','中辣','大辣'], def:'不加辣'},
+  {key:'utensil', title:'餐具', choices:['要餐具','不用餐具'], def:'要餐具'}
+];
+
+var OPT_T = {
+  '酸菜':{en:'Pickled mustard',vi:'Dưa cải',th:'ผักกาดดอง'},
+  '加酸菜':{en:'Yes',vi:'Có',th:'ใส่'},'不加酸菜':{en:'No',vi:'Không',th:'ไม่ใส่'},
+  '蔥':{en:'Scallion',vi:'Hành lá',th:'ต้นหอม'},
+  '加蔥':{en:'Yes',vi:'Có',th:'ใส่'},'不加蔥':{en:'No',vi:'Không',th:'ไม่ใส่'},
+  '香油':{en:'Sesame oil',vi:'Dầu mè',th:'น้ำมันงา'},
+  '加香油':{en:'Yes',vi:'Có',th:'ใส่'},'不加香油':{en:'No',vi:'Không',th:'ไม่ใส่'},
+  '醬':{en:'Sauce',vi:'Sốt',th:'ซอส'},
+  '醬正常':{en:'Regular',vi:'Bình thường',th:'ปกติ'},'醬多':{en:'Extra',vi:'Nhiều sốt',th:'ซอสเยอะ'},
+  '醬少':{en:'Less',vi:'Ít sốt',th:'ซอสน้อย'},'不加醬':{en:'None',vi:'Không sốt',th:'ไม่ใส่ซอส'},
+  '辣度':{en:'Spice level',vi:'Độ cay',th:'ระดับความเผ็ด'},
+  '不加辣':{en:'Not spicy',vi:'Không cay',th:'ไม่เผ็ด'},'小辣':{en:'Mild',vi:'Cay ít',th:'เผ็ดน้อย'},
+  '中辣':{en:'Medium',vi:'Cay vừa',th:'เผ็ดกลาง'},'大辣':{en:'Hot',vi:'Cay nhiều',th:'เผ็ดมาก'},
+  '餐具':{en:'Utensils',vi:'Đũa muỗng',th:'ช้อนส้อม'},
+  '要餐具':{en:'Yes',vi:'Lấy',th:'รับ'},'不用餐具':{en:'No',vi:'Không lấy',th:'ไม่รับ'}
+};
+
+var UI = {
+  zh:{sub:'線上點餐',orders:'我的訂單',
+    queue:'前面有 {n} 張單，最快 <strong>{t}</strong> 可取餐',
+    beforeOpen:'現在可以先下單，16:30 起開始取餐。最快 <strong>{t}</strong> 可取餐',
+    paused:'店家暫時無法接單，請稍後再試',closed:'今天的取餐時間已結束（16:30–23:30），明天見',
+    sold:'售完',items:'{n} 項',next:'下一步',
+    giftGot:'已達 ${m}，加送 {g} 一份',giftMore:'再點 ${m} 送 {g} 一份',gift:'贈品',
+    checkout:'確認訂單',back:'返回',summary:'訂單明細',flavor:'口味',note:'備註',
+    notePh:'例如：分開裝、湯汁多一點',pickup:'取餐時間',asap:'盡快',asapAt:'約 {t}',schedule:'指定時間',
+    contact:'取餐人',name:'姓名',phone:'手機',saveDef:'下次自動帶入這組資料',firstTime:'第一次點餐，請填寫取餐人資料',
+    total:'合計',pay:'取餐時現場付現金',submit:'送出訂單',
+    eName:'請輸入取餐人姓名',ePhone:'請輸入 09 開頭的 10 碼手機號碼',
+    eSold:'{x} 剛售完，已從訂單移除，請確認後再送出',
+    eLimit:'你還有 {n} 張訂單尚未取餐，取餐後才能再下單',eEmpty:'請先選擇餐點',
+    eSlot:'這個取餐時間已經過了，請重新選擇',
+    soldInCart:'已售完，送出時會移除',
+    orderNo:'訂單編號',showThis:'取餐時請出示此畫面，現場付款',
+    st_sent:'已送出，等待店家接單',st_accepted:'店家已接單',st_making:'製作中',st_ready:'可以取餐了',st_done:'已取餐',st_cancel:'已取消',
+    noOrders:'目前沒有待取餐的訂單',orderMore:'繼續點餐',today:'今天',toMenu:'看菜單'},
+  en:{sub:'Order online',orders:'My orders',
+    queue:'{n} orders ahead. Earliest pickup <strong>{t}</strong>',
+    beforeOpen:'You can order now. Pickup starts at 16:30, earliest <strong>{t}</strong>',
+    paused:"The shop isn't taking online orders right now. Please try again later.",closed:"Today's pickup hours (16:30–23:30) are over. See you tomorrow.",
+    sold:'Sold out',items:'{n} items',next:'Next',
+    giftGot:'Over ${m}: free {g} included',giftMore:'Add ${m} more for a free {g}',gift:'Free gift',
+    checkout:'Review order',back:'Back',summary:'Your order',flavor:'Flavor',note:'Notes',
+    notePh:'e.g. pack separately, extra broth',pickup:'Pickup time',asap:'As soon as possible',asapAt:'about {t}',schedule:'Choose a time',
+    contact:'Pickup contact',name:'Name',phone:'Mobile',saveDef:'Use these details next time',firstTime:'First order: please fill in your pickup details',
+    total:'Total',pay:'Pay cash at pickup',submit:'Place order',
+    eName:'Enter the pickup name',ePhone:'Enter a 10-digit mobile number starting with 09',
+    eSold:'{x} just sold out and was removed. Please check and place the order again.',
+    eLimit:'You have {n} orders waiting for pickup. You can order again after picking them up.',eEmpty:'Choose at least one item',
+    eSlot:'That pickup time has passed. Please choose another.',
+    soldInCart:'Sold out, will be removed',
+    orderNo:'Order number',showThis:'Show this screen and pay at pickup',
+    st_sent:'Sent, waiting for the shop',st_accepted:'Order accepted',st_making:'Being prepared',st_ready:'Ready for pickup',st_done:'Picked up',st_cancel:'Cancelled',
+    noOrders:'No orders waiting for pickup',orderMore:'Order more',today:'Today',toMenu:'See menu'},
+  vi:{sub:'Đặt món online',orders:'Đơn của tôi',
+    queue:'Còn {n} đơn phía trước. Lấy sớm nhất lúc <strong>{t}</strong>',
+    beforeOpen:'Có thể đặt trước, bắt đầu lấy món từ 16:30. Sớm nhất <strong>{t}</strong>',
+    paused:'Cửa hàng tạm ngưng nhận đơn online, vui lòng thử lại sau',closed:'Đã hết giờ lấy món hôm nay (16:30–23:30), hẹn gặp ngày mai',
+    sold:'Hết hàng',items:'{n} món',next:'Tiếp tục',
+    giftGot:'Đủ ${m}: tặng 1 phần {g}',giftMore:'Thêm ${m} để được tặng {g}',gift:'Quà tặng',
+    checkout:'Xác nhận đơn',back:'Quay lại',summary:'Chi tiết đơn',flavor:'Khẩu vị',note:'Ghi chú',
+    notePh:'Ví dụ: đóng riêng, nhiều nước',pickup:'Giờ lấy món',asap:'Sớm nhất',asapAt:'khoảng {t}',schedule:'Chọn giờ',
+    contact:'Người lấy món',name:'Tên',phone:'Số điện thoại',saveDef:'Dùng thông tin này cho lần sau',firstTime:'Lần đầu đặt món, vui lòng điền thông tin',
+    total:'Tổng',pay:'Trả tiền mặt khi lấy món',submit:'Đặt món',
+    eName:'Nhập tên người lấy món',ePhone:'Nhập số điện thoại 10 số bắt đầu bằng 09',
+    eSold:'{x} vừa hết hàng và đã được bỏ khỏi đơn. Vui lòng kiểm tra rồi đặt lại.',
+    eLimit:'Bạn còn {n} đơn chưa lấy. Lấy món xong mới đặt tiếp được.',eEmpty:'Vui lòng chọn món',
+    eSlot:'Giờ lấy món này đã qua, vui lòng chọn lại',
+    soldInCart:'Hết hàng, sẽ bị bỏ khi đặt',
+    orderNo:'Mã đơn',showThis:'Đưa màn hình này khi lấy món và thanh toán',
+    st_sent:'Đã gửi, chờ cửa hàng nhận',st_accepted:'Cửa hàng đã nhận đơn',st_making:'Đang làm',st_ready:'Có thể lấy món',st_done:'Đã lấy',st_cancel:'Đã hủy',
+    noOrders:'Không có đơn chờ lấy',orderMore:'Đặt thêm',today:'Hôm nay',toMenu:'Xem thực đơn'},
+  th:{sub:'สั่งออนไลน์',orders:'ออเดอร์ของฉัน',
+    queue:'มีคิวก่อนหน้า {n} ออเดอร์ รับได้เร็วสุด <strong>{t}</strong>',
+    beforeOpen:'สั่งล่วงหน้าได้ เริ่มรับอาหาร 16:30 เร็วสุด <strong>{t}</strong>',
+    paused:'ร้านงดรับออเดอร์ออนไลน์ชั่วคราว กรุณาลองใหม่ภายหลัง',closed:'หมดเวลารับอาหารของวันนี้แล้ว (16:30–23:30) พบกันพรุ่งนี้',
+    sold:'หมด',items:'{n} รายการ',next:'ถัดไป',
+    giftGot:'ครบ ${m} รับฟรี {g} 1 ที่',giftMore:'สั่งเพิ่ม ${m} รับฟรี {g}',gift:'ของแถม',
+    checkout:'ตรวจสอบออเดอร์',back:'กลับ',summary:'รายการอาหาร',flavor:'รสชาติ',note:'หมายเหตุ',
+    notePh:'เช่น แยกห่อ น้ำเยอะ',pickup:'เวลารับ',asap:'เร็วที่สุด',asapAt:'ประมาณ {t}',schedule:'เลือกเวลา',
+    contact:'ผู้รับอาหาร',name:'ชื่อ',phone:'เบอร์มือถือ',saveDef:'ใช้ข้อมูลนี้ครั้งหน้า',firstTime:'สั่งครั้งแรก กรุณากรอกข้อมูลผู้รับ',
+    total:'รวม',pay:'ชำระเงินสดตอนรับอาหาร',submit:'ยืนยันสั่งซื้อ',
+    eName:'กรุณากรอกชื่อผู้รับ',ePhone:'กรุณากรอกเบอร์มือถือ 10 หลักที่ขึ้นต้นด้วย 09',
+    eSold:'{x} เพิ่งหมด และถูกนำออกแล้ว กรุณาตรวจสอบแล้วสั่งอีกครั้ง',
+    eLimit:'คุณมี {n} ออเดอร์ที่ยังไม่ได้รับ รับอาหารก่อนจึงสั่งใหม่ได้',eEmpty:'กรุณาเลือกอาหาร',
+    eSlot:'เวลารับนี้ผ่านไปแล้ว กรุณาเลือกใหม่',
+    soldInCart:'หมดแล้ว จะถูกนำออกตอนสั่ง',
+    orderNo:'หมายเลขออเดอร์',showThis:'แสดงหน้าจอนี้และชำระเงินตอนรับอาหาร',
+    st_sent:'ส่งแล้ว รอร้านรับออเดอร์',st_accepted:'ร้านรับออเดอร์แล้ว',st_making:'กำลังทำ',st_ready:'พร้อมรับแล้ว',st_done:'รับแล้ว',st_cancel:'ยกเลิกแล้ว',
+    noOrders:'ไม่มีออเดอร์ที่รอรับ',orderMore:'สั่งเพิ่ม',today:'วันนี้',toMenu:'ดูเมนู'}
+};
+
+/* ============================================================
+   儲存（示範版存在這支手機；正式版存在雲端）
+   ============================================================ */
+function load(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+var DEMO = load('w24_demo', null) || {
+  useReal:true, fakeTime:'18:00', queue:3, online:true, sold:{},
+  giftOn:true, giftMin:300, giftId:'10', lineName:'王小明', autoAccept:true
+};
+var PROFILE = load('w24_profile', null);       // {name, phone}
+var ORDERS  = load('w24_orders', []);          // 雲端訂單（示範）
+var LAST_MSG = load('w24_lastmsg', '');
+
+var S = {
+  lang: load('w24_lang', 'zh'),
+  cart: load('w24_cart', {}),
+  opts: {}, note:'', pickMode:'asap', slot:null,
+  form: null, saveDef: true, error:''
+};
+OPTIONS.forEach(function(o){ S.opts[o.key] = o.def; });
+
+function saveDemo(){ save('w24_demo', DEMO); }
+function saveCart(){ save('w24_cart', S.cart); }
+function saveOrders(){ save('w24_orders', ORDERS); }
+
+/* ============================================================
+   小工具
+   ============================================================ */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function t(k, v){
+  var s = (UI[S.lang] && UI[S.lang][k] != null) ? UI[S.lang][k] : UI.zh[k];
+  if (v) Object.keys(v).forEach(function(x){ s = s.split('{' + x + '}').join(v[x]); });
+  return s;
+}
+function iname(it){ return S.lang === 'zh' ? it.name : ((it.i && it.i[S.lang]) || it.name); }
+function oname(zh){ return S.lang === 'zh' ? zh : ((OPT_T[zh] && OPT_T[zh][S.lang]) || zh); }
+function item(id){ for (var i = 0; i < MENU.length; i++) if (MENU[i].id === id) return MENU[i]; return null; }
+function money(n){ return '$' + Number(n).toLocaleString('en-US'); }
+function hm(min){ min = ((min % 1440) + 1440) % 1440; var h = Math.floor(min / 60), m = min % 60; return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
+function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function toast(msg){ var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(function(){ el.classList.remove('on'); }, 2200); }
+
+/* ============================================================
+   時間與排隊
+   ============================================================ */
+function nowMin(){
+  if (DEMO.useReal){ var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  var p = String(DEMO.fakeTime || '18:00').split(':'); return (+p[0]) * 60 + (+p[1] || 0);
+}
+function leadMin(){ return Math.max(MIN_LEAD, (Number(DEMO.queue) + 1) * PER_ORDER); }
+function earliest(){ var e = Math.max(nowMin() + leadMin(), OPEN_MIN); return Math.ceil(e / 5) * 5; }
+function isClosed(){ return earliest() > LAST_MIN; }
+function isPaused(){ return !DEMO.online; }
+function slots(){
+  var out = [], s = Math.ceil(earliest() / 15) * 15;
+  if (s === earliest()) s += 15;          // 第一個指定時段比「盡快」晚
+  for (; s <= LAST_MIN; s += 15) out.push(s);
+  return out;
+}
+
+/* ============================================================
+   購物車
+   ============================================================ */
+function cartLines(){
+  var out = [];
+  Object.keys(S.cart).forEach(function(id){
+    var it = item(id), q = S.cart[id];
+    if (it && q > 0) out.push({it:it, qty:q, sold:!!DEMO.sold[id]});
+  });
+  out.sort(function(a, b){ return a.it.id < b.it.id ? -1 : 1; });
+  return out;
+}
+function cartTotal(skipSold){ return cartLines().reduce(function(s, l){ return (skipSold && l.sold) ? s : s + l.it.price * l.qty; }, 0); }
+function cartCount(){ return cartLines().reduce(function(s, l){ return s + l.qty; }, 0); }
+function giftItem(){ return DEMO.giftOn ? item(DEMO.giftId) : null; }
+function giftReached(total){ var g = giftItem(); return !!(g && !DEMO.sold[g.id] && total >= Number(DEMO.giftMin)); }
+function setQty(id, q){
+  q = Math.max(0, Math.min(20, q));
+  if (q === 0) delete S.cart[id]; else S.cart[id] = q;
+  saveCart(); render();
+}
+
+/* ============================================================
+   訂單
+   ============================================================ */
+var OPEN_ST = ['sent','accepted','making','ready'];
+function myOpenOrders(){ return ORDERS.filter(function(o){ return OPEN_ST.indexOf(o.status) >= 0; }); }
+function findOrder(id){ for (var i = 0; i < ORDERS.length; i++) if (ORDERS[i].id === id) return ORDERS[i]; return null; }
+
+function makeOrderNo(phone){
+  var base = 'W' + phone.slice(-3), n = 0, day = todayKey();
+  ORDERS.forEach(function(o){ if (o.day === day && o.base === base) n++; });
+  return { base: base, no: n === 0 ? base : base + '-' + (n + 1) };
+}
+
+function lineMessage(o){
+  var L = [];
+  L.push('【24味線上點餐】' + o.no);
+  L.push(o.name + ' ' + o.phone);
+  L.push('取餐時間 ' + hm(o.pickup) + (o.asap ? '（盡快）' : '（預約）'));
+  L.push('');
+  o.items.forEach(function(x){ L.push(x.name + ' x' + x.qty + '  ' + money(x.price * x.qty)); });
+  if (o.gift) L.push('贈品 ' + o.gift + ' x1  $0');
+  L.push('口味：' + o.optsText);
+  if (o.note) L.push('備註：' + o.note);
+  L.push('合計 ' + money(o.total) + '（取餐時付現）');
+  L.push('');
+  L.push('查看訂單：' + location.href.split('#')[0] + '#/order/' + o.id);
+  return L.join('\n');
+}
+
+function submitOrder(){
+  var f = S.form;
+  S.error = '';
+  if (isPaused()){ S.error = t('paused'); return render(); }
+  if (isClosed()){ S.error = t('closed'); return render(); }
+  // 雲端送單前再檢查一次售完
+  var removed = [];
+  cartLines().forEach(function(l){ if (l.sold){ removed.push(iname(l.it)); delete S.cart[l.it.id]; } });
+  if (removed.length){ saveCart(); S.error = t('eSold', {x: removed.join('、')}); return render(); }
+  if (!cartLines().length){ S.error = t('eEmpty'); return render(); }
+  var name = (f.name || '').trim(), phone = (f.phone || '').replace(/\D/g, '');
+  if (!name){ S.error = t('eName'); return render(); }
+  if (!/^09\d{8}$/.test(phone)){ S.error = t('ePhone'); return render(); }
+  var open = myOpenOrders().length;
+  if (open >= OPEN_LIMIT){ S.error = t('eLimit', {n: open}); return render(); }
+  var pickup = S.pickMode === 'asap' ? earliest() : Number(S.slot);
+  if (S.pickMode !== 'asap' && (!pickup || pickup < earliest())){ S.error = t('eSlot'); return render(); }
+
+  var lines = cartLines(), total = cartTotal(false);
+  var g = giftReached(total) ? giftItem().name : null;
+  var no = makeOrderNo(phone);
+  var optsText = OPTIONS.map(function(o){ return S.opts[o.key]; }).join('・');
+  var o = {
+    id: 'o' + Date.now().toString(36), no: no.no, base: no.base, day: todayKey(),
+    name: name, phone: phone, line: DEMO.lineName, pickup: pickup, asap: S.pickMode === 'asap',
+    items: lines.map(function(l){ return {id:l.it.id, name:l.it.name, qty:l.qty, price:l.it.price}; }),
+    gift: g, opts: Object.assign({}, S.opts), optsText: optsText,
+    note: (S.note || '').trim().slice(0, NOTE_MAX), total: total,
+    status: 'sent', createdAt: Date.now()
+  };
+  ORDERS.unshift(o); saveOrders();
+  if (S.saveDef){ PROFILE = {name:name, phone:phone}; save('w24_profile', PROFILE); }
+  LAST_MSG = lineMessage(o); save('w24_lastmsg', LAST_MSG);
+  S.cart = {}; saveCart(); S.note = ''; S.form = null; S.error = ''; S.pickMode = 'asap'; S.slot = null;
+  OPTIONS.forEach(function(x){ S.opts[x.key] = x.def; });
+  if (DEMO.autoAccept && DEMO.online){
+    setTimeout(function(){ var x = findOrder(o.id); if (x && x.status === 'sent'){ x.status = 'accepted'; saveOrders(); render(); } }, 4000);
+  }
+  go('#/order/' + o.id);
+}
+
+/* ============================================================
+   畫面
+   ============================================================ */
+function route(){ var h = location.hash || '#/'; return h.replace(/^#/, ''); }
+function go(h){ if (location.hash === h) render(); else location.hash = h; window.scrollTo(0, 0); }
+
+function statusStrip(){
+  if (isPaused()) return '<div class="strip paused">' + t('paused') + '</div>';
+  if (isClosed()) return '<div class="strip paused">' + t('closed') + '</div>';
+  var key = nowMin() + leadMin() < OPEN_MIN ? 'beforeOpen' : 'queue';
+  return '<div class="strip">' + t(key, {n: DEMO.queue, t: hm(earliest())}) + '</div>';
+}
+
+function viewMenu(){
+  var h = '<div class="wrap">' + statusStrip();
+  h += '<ul class="menu">';
+  MENU.forEach(function(it){
+    var q = S.cart[it.id] || 0, sold = !!DEMO.sold[it.id];
+    h += '<li class="row' + (sold ? ' sold' : '') + '">';
+    h += '<div class="no">' + it.id + '</div>';
+    h += '<div class="info"><div class="nm">' + esc(iname(it)) + (sold ? '<span class="soldtag">' + t('sold') + '</span>' : '') + '</div>';
+    h += '<div class="sub">' + (S.lang !== 'zh' ? esc(it.name) + '　' : '') + esc(it.portion) + '</div></div>';
+    h += '<div class="price">' + money(it.price) + '</div>';
+    h += '<div class="step">';
+    if (q > 0){
+      h += '<button type="button" data-act="dec" data-id="' + it.id + '" aria-label="-">−</button>';
+      h += '<span class="q">' + q + '</span>';
+    }
+    h += '<button type="button" class="add" data-act="inc" data-id="' + it.id + '" aria-label="+"' + (sold ? ' disabled' : '') + '>+</button>';
+    h += '</div></li>';
+  });
+  h += '</ul>';
+  h += '<p class="demo-note">示範版：品名取自現有菜單，價格與份量是示範資料。正式版會即時讀取點餐機的菜單與售完狀態。</p>';
+  h += '<div class="spacer"></div></div>';
+  return h;
+}
+
+function cartBar(){
+  var r = route();
+  if (r !== '/' && r !== '') return '';
+  var n = cartCount();
+  if (!n) return '';
+  var total = cartTotal(true), g = giftItem(), hint = '';
+  if (g && !DEMO.sold[g.id]){
+    hint = giftReached(total)
+      ? '<div class="gifthint got">' + t('giftGot', {m: DEMO.giftMin, g: esc(iname(g))}) + '</div>'
+      : '<div class="gifthint">' + t('giftMore', {m: Number(DEMO.giftMin) - total, g: esc(iname(g))}) + '</div>';
+  }
+  var blocked = isPaused() || isClosed();
+  return '<div class="cartbar"><div class="wrap">' + hint +
+    '<div class="cartline"><div class="sum"><b>' + money(total) + '</b><span>' + t('items', {n: n}) + '</span></div>' +
+    '<button class="btn" type="button" data-act="checkout"' + (blocked ? ' disabled' : '') + '>' + t('next') + '</button></div></div></div>';
+}
+
+function linesHtml(lines, editable){
+  var h = '<ul class="lines">';
+  lines.forEach(function(l){
+    h += '<li><div class="n">' + esc(iname(l.it)) + (S.lang !== 'zh' ? '<small>' + esc(l.it.name) + '</small>' : '') +
+      (l.sold ? '<div class="warn">' + t('soldInCart') + '</div>' : '') + '</div>';
+    if (editable){
+      h += '<div class="step"><button type="button" data-act="dec" data-id="' + l.it.id + '" aria-label="-">−</button><span class="q">' + l.qty + '</span>' +
+        '<button type="button" class="add" data-act="inc" data-id="' + l.it.id + '" aria-label="+"' + (l.sold ? ' disabled' : '') + '>+</button></div>';
+    } else {
+      h += '<div>x' + l.qty + '</div>';
+    }
+    h += '<div class="a">' + money(l.it.price * l.qty) + '</div></li>';
+  });
+  return h;
+}
+
+function viewCheckout(){
+  if (!cartLines().length) return '<div class="wrap"><div class="empty">' + t('eEmpty') + '<br><br><button class="btn" type="button" data-act="home">' + t('toMenu') + '</button></div></div>';
+  if (!S.form){
+    S.form = { name: PROFILE ? PROFILE.name : DEMO.lineName, phone: PROFILE ? PROFILE.phone : '' };
+    S.saveDef = !PROFILE;
+  }
+  if (S.pickMode === 'slot' && !S.slot){ var sl = slots(); S.slot = sl.length ? sl[0] : null; }
+  var total = cartTotal(true), g = giftReached(total) ? giftItem() : null;
+  var h = '<div class="wrap">';
+  h += '<div class="head2"><button class="back" type="button" data-act="home">‹ ' + t('back') + '</button></div>';
+  h += '<h2>' + t('checkout') + '</h2>';
+  if (S.error) h += '<div class="err" role="alert">' + esc(S.error) + '</div>';
+
+  // 明細
+  h += '<div class="card"><h3>' + t('summary') + '</h3>' + linesHtml(cartLines(), true);
+  if (g) h += '<li><div class="n">' + t('gift') + '：' + esc(iname(g)) + '</div><div>x1</div><div class="a">$0</div></li>';
+  h += '</ul><div class="tot"><span>' + t('total') + '</span><span>' + money(total) + '</span></div><div class="pay">' + t('pay') + '</div></div>';
+
+  // 口味
+  h += '<div class="card"><h3>' + t('flavor') + '</h3>';
+  OPTIONS.forEach(function(o){
+    h += '<div class="opt"><div class="lb">' + esc(oname(o.title)) + '</div><div class="chips">';
+    o.choices.forEach(function(c){
+      h += '<button type="button" class="chip" data-act="opt" data-k="' + o.key + '" data-v="' + esc(c) + '" aria-pressed="' + (S.opts[o.key] === c) + '">' + esc(oname(c)) + '</button>';
+    });
+    h += '</div></div>';
+  });
+  h += '<div class="opt"><div class="lb">' + t('note') + '</div>' +
+    '<textarea id="f-note" maxlength="' + NOTE_MAX + '" placeholder="' + esc(t('notePh')) + '">' + esc(S.note) + '</textarea>' +
+    '<div class="count"><span id="note-n">' + S.note.length + '</span> / ' + NOTE_MAX + '</div></div></div>';
+
+  // 取餐時間
+  var sl2 = slots();
+  h += '<div class="card"><h3>' + t('pickup') + '</h3><div class="chips">' +
+    '<button type="button" class="chip" data-act="pick" data-v="asap" aria-pressed="' + (S.pickMode === 'asap') + '">' + t('asap') + '（' + t('asapAt', {t: hm(earliest())}) + '）</button>' +
+    (sl2.length ? '<button type="button" class="chip" data-act="pick" data-v="slot" aria-pressed="' + (S.pickMode === 'slot') + '">' + t('schedule') + '</button>' : '') +
+    '</div>';
+  if (S.pickMode === 'slot' && sl2.length){
+    h += '<div class="slotsel"><select id="f-slot" aria-label="' + esc(t('schedule')) + '">';
+    sl2.forEach(function(s){ h += '<option value="' + s + '"' + (Number(S.slot) === s ? ' selected' : '') + '>' + hm(s) + '</option>'; });
+    h += '</select></div>';
+  }
+  h += '</div>';
+
+  // 取餐人
+  h += '<div class="card"><h3>' + t('contact') + '</h3>';
+  if (!PROFILE) h += '<div class="hint" style="margin:-4px 0 10px">' + t('firstTime') + '</div>';
+  h += '<div class="field"><label for="f-name">' + t('name') + '</label><input type="text" id="f-name" autocomplete="name" maxlength="20" value="' + esc(S.form.name) + '"></div>';
+  h += '<div class="field"><label for="f-phone">' + t('phone') + '</label><input type="tel" id="f-phone" inputmode="numeric" autocomplete="tel" maxlength="12" placeholder="0912345678" value="' + esc(S.form.phone) + '"></div>';
+  h += '<label class="check"><input type="checkbox" id="f-save"' + (S.saveDef ? ' checked' : '') + '> ' + t('saveDef') + '</label></div>';
+
+  h += '<button class="btn wide" type="button" data-act="submit"' + ((isPaused() || isClosed()) ? ' disabled' : '') + '>' + t('submit') + '　' + money(total) + '</button>';
+  h += '<div style="height:32px"></div></div>';
+  return h;
+}
+
+function statusHtml(o){
+  var cls = o.status === 'ready' ? 'ready' : (o.status === 'sent' || o.status === 'accepted' || o.status === 'making') ? 'live' : '';
+  return '<div class="status ' + cls + '"><span class="dot"></span>' + t('st_' + o.status) + '</div>';
+}
+
+function viewOrder(id){
+  var o = findOrder(id);
+  if (!o) return '<div class="wrap"><div class="empty">' + t('noOrders') + '<br><br><button class="btn" type="button" data-act="home">' + t('toMenu') + '</button></div></div>';
+  var h = '<div class="wrap"><div class="ticket">';
+  h += '<div class="shop">24味滷味　' + t('sub') + '</div>';
+  h += '<div class="lab">' + t('orderNo') + '</div>';
+  h += '<div class="big">' + esc(o.no) + '</div>';
+  h += '<div class="who">' + esc(o.name) + '<span>' + esc(o.phone.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1-$2-$3')) + '</span></div>';
+  h += '<div class="when"><small>' + t('pickup') + '</small><b>' + hm(o.pickup) + '</b><small>' + (o.asap ? t('asap') : t('schedule')) + '</small></div>';
+  h += statusHtml(o);
+  h += '<ul class="lines" style="margin-top:12px">';
+  o.items.forEach(function(x){
+    var it = item(x.id) || {name:x.name};
+    h += '<li><div class="n">' + esc(iname(it)) + (S.lang !== 'zh' ? '<small>' + esc(x.name) + '</small>' : '') + '</div><div>x' + x.qty + '</div><div class="a">' + money(x.price * x.qty) + '</div></li>';
+  });
+  if (o.gift){ var gi = null; MENU.forEach(function(m){ if (m.name === o.gift) gi = m; }); h += '<li><div class="n">' + t('gift') + '：' + esc(gi ? iname(gi) : o.gift) + '</div><div>x1</div><div class="a">$0</div></li>'; }
+  h += '</ul>';
+  h += '<div class="opts">' + (S.lang === 'zh'
+    ? OPTIONS.map(function(x){ return esc(o.opts[x.key]); }).join('、')
+    : OPTIONS.map(function(x){ return esc(oname(x.title)) + ': ' + esc(oname(o.opts[x.key])); }).join(', ')) + '</div>';
+  if (o.note) h += '<div class="noteline">' + t('note') + '：' + esc(o.note) + '</div>';
+  h += '<div class="tot"><span>' + t('total') + '</span><span>' + money(o.total) + '</span></div>';
+  h += '<div class="pay">' + t('pay') + '</div>';
+  h += '</div>';
+  h += '<p class="showthis">' + t('showThis') + '</p>';
+  h += '<button class="btn wide ghost" type="button" data-act="home">' + t('orderMore') + '</button>';
+  h += '<div style="height:32px"></div></div>';
+  return h;
+}
+
+function viewOrders(){
+  var list = ORDERS.filter(function(o){ return OPEN_ST.indexOf(o.status) >= 0 || o.day === todayKey(); });
+  var h = '<div class="wrap"><div class="head2"><button class="back" type="button" data-act="home">‹ ' + t('back') + '</button></div><h2>' + t('orders') + '</h2>';
+  if (!list.length) return h + '<div class="empty">' + t('noOrders') + '<br><br><button class="btn" type="button" data-act="home">' + t('toMenu') + '</button></div></div>';
+  h += '<ul class="olist">';
+  list.forEach(function(o){
+    h += '<li><button type="button" data-act="open" data-id="' + o.id + '"><span class="no">' + esc(o.no) + '</span>' +
+      '<span class="meta"><b>' + t('pickup') + ' ' + hm(o.pickup) + '</b><br>' + t('st_' + o.status) + '　' + money(o.total) + '</span><span aria-hidden="true">›</span></button></li>';
+  });
+  return h + '</ul></div>';
+}
+
+function render(){
+  document.documentElement.lang = S.lang === 'zh' ? 'zh-Hant' : S.lang;
+  document.getElementById('t-sub').textContent = t('sub');
+  var open = myOpenOrders().length, bo = document.getElementById('btn-orders');
+  bo.innerHTML = esc(t('orders')) + (open ? '<span class="badge">' + open + '</span>' : '');
+  document.getElementById('lang').value = S.lang;
+  var r = route(), html;
+  if (r.indexOf('/order/') === 0) html = viewOrder(r.slice(7));
+  else if (r === '/orders') html = viewOrders();
+  else if (r === '/checkout') html = viewCheckout();
+  else html = viewMenu();
+  document.getElementById('app').innerHTML = html;
+  document.getElementById('cartbar').innerHTML = cartBar();
+  if (document.getElementById('sheet').classList.contains('on')) renderSheet();
+}
+
+/* ============================================================
+   事件
+   ============================================================ */
+document.addEventListener('click', function(e){
+  var b = e.target.closest('[data-act]');
+  if (!b) return;
+  var a = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+  if (a === 'inc') setQty(id, (S.cart[id] || 0) + 1);
+  else if (a === 'dec') setQty(id, (S.cart[id] || 0) - 1);
+  else if (a === 'checkout'){ S.error = ''; go('#/checkout'); }
+  else if (a === 'home'){ S.error = ''; go('#/'); }
+  else if (a === 'opt'){ S.opts[b.getAttribute('data-k')] = b.getAttribute('data-v'); render(); }
+  else if (a === 'pick'){ S.pickMode = b.getAttribute('data-v'); if (S.pickMode === 'slot') S.slot = null; render(); }
+  else if (a === 'submit') submitOrder();
+  else if (a === 'open') go('#/order/' + id);
+});
+document.addEventListener('input', function(e){
+  var el = e.target;
+  if (el.id === 'f-note'){ S.note = el.value.slice(0, NOTE_MAX); var n = document.getElementById('note-n'); if (n) n.textContent = S.note.length; }
+  else if (el.id === 'f-name' && S.form){ S.form.name = el.value; }
+  else if (el.id === 'f-phone' && S.form){ S.form.phone = el.value; }
+});
+document.addEventListener('change', function(e){
+  var el = e.target;
+  if (el.id === 'f-slot') S.slot = Number(el.value);
+  else if (el.id === 'f-save') S.saveDef = el.checked;
+  else if (el.id === 'lang'){ S.lang = el.value; save('w24_lang', S.lang); render(); }
+});
+document.getElementById('btn-orders').addEventListener('click', function(){ go('#/orders'); });
+window.addEventListener('hashchange', function(){ render(); window.scrollTo(0, 0); });
+
+// 狀態頁自動更新（正式版每 10 秒問雲端）
+setInterval(function(){
+  var r = route();
+  if (r.indexOf('/order/') === 0 || r === '/orders' || r === '/' || r === '') {
+    ORDERS = load('w24_orders', ORDERS);
+    if (!document.activeElement || ['INPUT','TEXTAREA','SELECT'].indexOf(document.activeElement.tagName) < 0) render();
+  }
+}, 5000);
+
+/* ============================================================
+   測試面板（正式版不會出現）
+   ============================================================ */
+function renderSheet(){
+  var last = ORDERS[0];
+  var h = '<div class="wrap"><h3>測試面板</h3><div class="hint">模擬點餐機、平板與雲端的狀態。正式版不會有這個按鈕。</div>';
+  h += '<div class="sec"><b>現在時間</b><div class="rowx"><label class="check"><input type="checkbox" id="d-real"' + (DEMO.useReal ? ' checked' : '') + '> 使用真實時間</label>' +
+    '<input type="time" id="d-time" value="' + esc(DEMO.fakeTime) + '"' + (DEMO.useReal ? ' disabled' : '') + '></div>' +
+    '<div class="hint">試試 15:00（先預約）、23:20（接近截止）、23:40（已截止）</div></div>';
+  h += '<div class="sec"><b>後廚還沒完成的單數（含自助機）</b><div class="rowx"><input type="number" id="d-queue" min="0" max="50" value="' + DEMO.queue + '"> 張，預估每張 ' + PER_ORDER + ' 分鐘</div></div>';
+  h += '<div class="sec"><b>點餐機連線</b><label class="check"><input type="checkbox" id="d-online"' + (DEMO.online ? ' checked' : '') + '> 點餐機在線（關掉＝斷線或平板按暫停接單）</label></div>';
+  h += '<div class="sec"><b>售完（平板按一次，這裡同步）</b><div class="soldgrid">';
+  MENU.forEach(function(it){ h += '<label><input type="checkbox" data-sold="' + it.id + '"' + (DEMO.sold[it.id] ? ' checked' : '') + '> ' + it.id + ' ' + esc(it.name) + '</label>'; });
+  h += '</div></div>';
+  h += '<div class="sec"><b>滿額贈（沿用自助機設定）</b><div class="rowx"><label class="check"><input type="checkbox" id="d-gift"' + (DEMO.giftOn ? ' checked' : '') + '> 開啟</label> 滿 <input type="number" id="d-giftmin" min="0" value="' + DEMO.giftMin + '"> 送 <select id="d-giftid">';
+  MENU.forEach(function(it){ h += '<option value="' + it.id + '"' + (DEMO.giftId === it.id ? ' selected' : '') + '>' + esc(it.name) + '</option>'; });
+  h += '</select></div></div>';
+  h += '<div class="sec"><b>最新一張訂單的狀態（模擬平板操作）</b>';
+  if (last){
+    h += '<div class="hint" style="margin-bottom:8px">' + esc(last.no) + '：' + t('st_' + last.status) + '</div><div class="small-btns">' +
+      '<button type="button" data-st="accepted">點餐機接單</button><button type="button" data-st="making">製作中</button>' +
+      '<button type="button" data-st="ready">完成</button><button type="button" data-st="done">已取餐收款</button><button type="button" data-st="cancel">未取作廢</button></div>';
+  } else h += '<div class="hint">還沒有訂單</div>';
+  h += '</div>';
+  h += '<div class="sec"><b>客人 LINE 傳給官方帳號的訊息</b>' + (LAST_MSG ? '<div class="msg">' + esc(LAST_MSG) + '</div>' : '<div class="hint">送出訂單後會出現在這裡</div>') + '</div>';
+  h += '<div class="sec"><b>LINE 顯示名稱</b><div class="rowx"><input type="text" id="d-line" value="' + esc(DEMO.lineName) + '" style="max-width:180px"></div></div>';
+  h += '<div class="sec"><b>重設</b><div class="small-btns"><button type="button" data-reset="profile">變成第一次點餐的新客人</button><button type="button" data-reset="orders">清除所有訂單</button></div></div>';
+  h += '<div class="sec"><button class="btn wide" type="button" id="d-close">關閉</button></div></div>';
+  document.getElementById('sheet').innerHTML = h;
+}
+function openSheet(on){
+  document.getElementById('sheet').classList.toggle('on', on);
+  document.getElementById('sheet-bg').classList.toggle('on', on);
+  if (on) renderSheet();
+}
+document.getElementById('btn-test').addEventListener('click', function(){ openSheet(true); });
+document.getElementById('sheet-bg').addEventListener('click', function(){ openSheet(false); });
+document.getElementById('sheet').addEventListener('click', function(e){
+  var el = e.target;
+  if (el.id === 'd-close') return openSheet(false);
+  var st = el.getAttribute && el.getAttribute('data-st');
+  if (st && ORDERS[0]){ ORDERS[0].status = st; saveOrders(); toast(ORDERS[0].no + '：' + t('st_' + st)); render(); return; }
+  var rs = el.getAttribute && el.getAttribute('data-reset');
+  if (rs === 'profile'){ PROFILE = null; save('w24_profile', null); S.form = null; toast('已重設為新客人'); render(); }
+  if (rs === 'orders'){ ORDERS = []; saveOrders(); LAST_MSG = ''; save('w24_lastmsg', ''); toast('已清除訂單'); render(); }
+});
+document.getElementById('sheet').addEventListener('change', function(e){
+  var el = e.target;
+  if (el.id === 'd-real') DEMO.useReal = el.checked;
+  else if (el.id === 'd-time') DEMO.fakeTime = el.value || '18:00';
+  else if (el.id === 'd-queue') DEMO.queue = Math.max(0, Number(el.value) || 0);
+  else if (el.id === 'd-online') DEMO.online = el.checked;
+  else if (el.id === 'd-gift') DEMO.giftOn = el.checked;
+  else if (el.id === 'd-giftmin') DEMO.giftMin = Math.max(0, Number(el.value) || 0);
+  else if (el.id === 'd-giftid') DEMO.giftId = el.value;
+  else if (el.id === 'd-line') DEMO.lineName = el.value || '王小明';
+  else if (el.hasAttribute('data-sold')){ var id = el.getAttribute('data-sold'); if (el.checked) DEMO.sold[id] = 1; else delete DEMO.sold[id]; }
+  else return;
+  saveDemo(); render();
+});
+
+render();
+</script>
+</body>
+</html>
