@@ -812,12 +812,14 @@ if (LIVE.url) (function () {
   function toMin(hhmm) { var m = String(hhmm || '').match(/(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 0; }
   // 雲端的訂單 → 網頁用的格式
   function norm(c) {
+    if (!c) return null;
     var o = {};
     String(c.opts || '').split(/[・、,]/).forEach(function (tk) {
       OPTIONS.forEach(function (x) { if (x.choices.indexOf(tk) >= 0) o[x.key] = tk; });
     });
     return { id: c.id, no: c.no, name: c.name, phone: c.phone, pickup: toMin(c.pickup), asap: c.asap, items: c.items,
-             gift: c.gift || null, opts: o, optsText: c.opts, note: c.note, total: c.total, status: c.status, day: todayKey() };
+             gift: c.gift || null, opts: o, optsText: c.opts, note: c.note, total: c.total, status: c.status, day: todayKey(),
+             createdMs: c.created ? new Date(String(c.created).replace(' ', 'T') + '+08:00').getTime() : 0 };
   }
   // 雲端錯誤訊息 → 客人選的語言
   function errText(msg, n) {
@@ -859,10 +861,37 @@ if (LIVE.url) (function () {
     if (!/^09\d{8}$/.test(phone)) { S.error = t('ePhone'); return render(); }
     BUSY = true;
     var btn = document.querySelector('[data-act="submit"]'); if (btn) { btn.disabled = true; btn.textContent = '…'; }
-    api({ action: 'order', name: name, phone: phone, saveDefault: !!S.saveDef, note: (S.note || '').trim(), opts: S.opts,
+    var body = { action: 'order', name: name, phone: phone, saveDefault: !!S.saveDef, note: (S.note || '').trim(), opts: S.opts,
           pickup: S.pickMode === 'asap' ? 'asap' : hm(Number(S.slot)),
-          items: cartLines().map(function (l) { return { id: l.it.id, qty: l.qty }; }) })
+          items: cartLines().map(function (l) { return { id: l.it.id, qty: l.qty }; }) };
+    // 送單編號：內容一樣的重送用同一個編號，雲端只會建一張（網路慢時客人再按一次也不會變兩張）
+    var sig = JSON.stringify([body.items, body.pickup, body.name, body.phone, body.note, body.opts]);
+    if (S.reqSig !== sig || !S.reqId) { S.reqSig = sig; S.reqId = 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    body.reqId = S.reqId;
+    var total0 = cartTotal(false), started = Date.now();
+    // 沒拿到明確結果時，先去「我的訂單」找剛剛那張，找到就當作成功
+    function recover(msg) {
+      return loadOrders().then(function () {
+        var hit = ORDERS.filter(function (o) {
+          return o.total === total0 && OPEN_ST.indexOf(o.status) >= 0 && o.createdMs >= started - 3 * 60000;
+        })[0];
+        BUSY = false;
+        if (hit && Date.now() - started < 10 * 60000) { finish(hit); return; }
+        S.error = msg; render();
+      }).catch(function () { BUSY = false; S.error = msg; render(); });
+    }
+    function finish(o) {
+      if (S.saveDef) PROFILE = { name: name, phone: phone };
+      S.cart = {}; saveCart(); S.note = ''; S.form = null; S.pickMode = 'asap'; S.slot = null; S.reqId = null; S.reqSig = null;
+      OPTIONS.forEach(function (x) { S.opts[x.key] = x.def; });
+      if (!ORDERS.some(function (x) { return x.id === o.id; })) ORDERS.unshift(o);
+      sendToLine(o);
+      go('#/order/' + o.id);
+    }
+    var UNSURE = '網路不穩，訂單可能已經送出。請先按右上角「我的訂單」確認，沒有看到再重新送出。';
+    api(body)
     .then(function (j) {
+      if (j.ok && !j.order) return recover(UNSURE);
       BUSY = false;
       if (!j.ok) {
         if (j.code === 'sold' && j.sold) {
@@ -871,15 +900,9 @@ if (LIVE.url) (function () {
         } else S.error = errText(j.error || '');
         return render();
       }
-      var o = norm(j.order);
-      ORDERS.unshift(o);
-      if (S.saveDef) PROFILE = { name: name, phone: phone };
-      S.cart = {}; saveCart(); S.note = ''; S.form = null; S.pickMode = 'asap'; S.slot = null;
-      OPTIONS.forEach(function (x) { S.opts[x.key] = x.def; });
-      sendToLine(o);
-      go('#/order/' + o.id);
+      finish(norm(j.order));
     })
-    .catch(function (e) { BUSY = false; S.error = '連線失敗，請再試一次 (' + e.message + ')'; render(); });
+    .catch(function () { recover(UNSURE); });
   };
 
   // 客人自己的 LINE 把訂單內容傳到官方帳號聊天室（從官方帳號選單開啟時才可以，失敗就略過）
