@@ -197,6 +197,13 @@ textarea{min-height:76px;resize:vertical}
 .ticket .opts{font-size:14px;color:var(--muted);margin-top:8px}
 .ticket .noteline{font-size:14px;margin-top:6px}
 .showthis{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 16px}
+/* 1.2 線上付款 */
+.status.unpaid{color:var(--warn)}.status.unpaid .dot{background:var(--warn);animation:pulse 1.6s ease-in-out infinite}
+.paybox{border:1.5px solid var(--warn);border-radius:12px;padding:12px;margin:12px 0;text-align:center}
+.paybox p{margin:0 0 10px;font-size:15px}.paybox .btn{margin-top:8px}
+.paidtag{display:inline-block;background:var(--ok);color:#fff;border-radius:8px;padding:3px 10px;font-weight:700;font-size:14px}
+.paychips{display:grid;grid-template-columns:1fr 1fr;gap:8px}.paychips .chip{min-height:56px;line-height:1.3}
+.paychips .chip small{display:block;font-weight:400;font-size:12px;opacity:.8}
 
 /* ---------- 我的訂單 ---------- */
 .olist{list-style:none;margin:0;padding:0}
@@ -275,7 +282,7 @@ var MENU = [{"id": "01", "name": "蜂巢牛肚", "price": 90, "cat": "meat", "co
 var OPTIONS = [{"key": "pickle", "title": "酸菜", "choices": ["加酸菜", "不加酸菜"], "def": "加酸菜"}, {"key": "scallion", "title": "蔥", "choices": ["加蔥", "不加蔥"], "def": "加蔥"}, {"key": "sauce", "title": "醬", "choices": ["黃金比例", "醬少", "不加醬", "醬多"], "def": "黃金比例"}, {"key": "spice", "title": "辣度", "choices": ["不加辣", "小辣", "中辣", "大辣", "另附辣包"], "def": "不加辣"}];
 var DOPTS = [{"key":"ice","title":"冰塊","choices":["少冰","小碎冰"]},{"key":"sugar","title":"甜度","choices":["半糖","微糖","無糖"]}];   // 手搖茶冰塊甜度（正式版從雲端菜單更新）
 var ADDONS = [{"id":"ADD01","name":"加購酸菜","price":15,"showWith":"pickle"}];   // 加購項目（正式版從雲端菜單更新）
-var PROMO = {"disc":{"on":false,"threshold":300,"amount":10},"half":{"on":false,"threshold":300,"max":1,"popup":false}};   // 滿額折／推薦加購（正式版跟點餐機設定連動）
+var PROMO = {"disc":{"on":false,"threshold":300,"amount":10,"items":[]},"addon":{"on":false,"popup":false,"groups":[]},"rec":{"on":false,"popup":false,"items":[]}};   // 優惠設定（正式模式由點餐機上傳的菜單覆蓋）
 var GIFTS = ["小菜"];
 var I18N = {"en": {"全部商品": "All", "愛呷肉": "Meats", "傳統美食": "Traditional", "愛呷菜": "Vegetables", "冷泡茶": "Cold Brew Tea", "蜂巢牛肚": "Honeycomb Beef Tripe", "鴨腸頭": "Duck Tendon", "鴨脆腸": "Duck Intestine", "鴨胗": "Duck Gizzard", "豬耳朵": "Pig Ear", "豬腱子肉": "Pork Shank", "手工貢丸": "Handmade Pork Ball", "豆皮": "Tofu Skin Roll", "豆包": "Tofu Skin Slices", "蒟蒻腰花": "Konjac", "麵香竹腸": "Gluten Roll", "百頁豆腐": "Bai-Ye Tofu", "大黑豆干": "Large Dried Tofu", "芋頭粿": "Taro Cake", "招牌米血": "Pig Blood Rice Cake", "手工甜不辣": "Taiwanese Fish Cake", "玉米筍": "Baby Corn", "杏鮑菇": "King Oyster Mushroom", "四季豆": "Green Beans", "花椰菜": "Broccoli", "小黃瓜": "Cucumber", "高麗菜": "Cabbage", "肝連肉": "Pork Diaphragm", "海帶": "Kelp", "滷花生": "Braised Peanuts", "毛豆": "Edamame", "高山烏龍茶": "High Mountain Oolong Tea", "黃金蕎麥茶": "Golden Buckwheat Tea", "輕焙高山四季春": "Light-Roast Four Seasons Tea", "高山烏龍鮮奶茶": "Oolong Fresh Milk Tea", "黃金蕎麥鮮奶茶": "Buckwheat Fresh Milk Tea", "輕焙四季春鮮奶茶": "Four Seasons Fresh Milk Tea", "小菜": "Side Dish", "酸菜": "Pickled Greens", "加酸菜": "Add", "不加酸菜": "None", "蔥": "Scallion", "加蔥": "Add", "不加蔥": "None", "辣度": "Spicy", "不加辣": "Not spicy", "小辣": "Mild", "中辣": "Medium", "大辣": "Hot", "另附辣包": "Chili on the side", "剩 {n} 份": "Only {n} left", "人氣": "Popular", "準備中": "Coming Soon", "香Q小麥卷": "Gluten Roll", "豆乾": "Small Dried Tofu Cubes", "手搖茶": "Hand-Shaken Tea", "冰塊": "Ice", "甜度": "Sweetness", "正常冰": "Regular ice", "少冰": "Less ice", "去冰(小碎冰)": "No ice (a little crushed ice)", "正常糖": "Regular sugar", "半糖": "Half sugar", "微糖": "Light sugar", "無糖": "No sugar", "請選擇冰塊和甜度": "Please choose ice and sweetness", "贈品飲料請選擇冰塊和甜度": "Choose ice and sweetness for your free drink", "再加 {n} 杯可享半價": "{n} more cups at half price", "已加購": "Added", "不用餐具": "No", "滿額折": "Spend & save", "看飲料": "See drinks", "💸 已滿 ${t}，飲料每杯折 ${a}": "💸 Spent ${t}: ${a} off each drink", "份": "serving", "醬": "Sauce", "不加香油": "None", "辣包": "Chili", "醬多": "Extra", "香油": "Sesame Oil", "🧋 推薦加購：飲料半價（限 {n} 杯）": "🧋 Add-on deal: drinks half price (max {n})", "🧋 再點 ${n}，飲料半價": "🧋 ${n} more for half-price drinks", "加購酸菜": "Extra pickled greens", "黃金比例": "Signature", "小碎冰": "Crushed ice", "要不要加一杯飲料？": "Add a drink?", "不用了": "No thanks", "半價": "Half price", "不加醬": "None", "醬少": "Less", "要餐具": "Yes", "加香油": "Add", "推薦加購": "Add-on deal", "辣醬拌入": "Mixed in", "💸 再點 ${n}，飲料每杯折 ${a}": "💸 ${n} more: ${a} off each drink", "餐具": "Utensils", "辣包另附": "On the side"}, "vi": {"全部商品": "Tất cả", "愛呷肉": "Món thịt", "傳統美食": "Món truyền thống", "愛呷菜": "Rau củ", "冷泡茶": "Trà ủ lạnh", "蜂巢牛肚": "Sách bò tổ ong", "鴨腸頭": "Gân vịt", "鴨脆腸": "Ruột vịt", "鴨胗": "Mề vịt", "豬耳朵": "Tai heo", "豬腱子肉": "Thịt bắp giò heo", "手工貢丸": "Thịt viên heo", "豆皮": "Tàu hũ ky cuộn", "豆包": "Tàu hũ ky lát", "蒟蒻腰花": "Khoai nưa (konjac)", "麵香竹腸": "Mì căn ống tre", "百頁豆腐": "Đậu hũ ngàn lớp", "大黑豆干": "Đậu hũ khô", "芋頭粿": "Bánh khoai môn", "招牌米血": "Bánh nếp tiết heo", "手工甜不辣": "Chả cá ngọt Đài Loan", "玉米筍": "Bắp non", "杏鮑菇": "Nấm đùi gà", "四季豆": "Đậu que", "花椰菜": "Bông cải xanh", "小黃瓜": "Dưa leo", "高麗菜": "Bắp cải", "肝連肉": "Thịt hoành heo", "海帶": "Rong biển", "滷花生": "Đậu phộng kho", "毛豆": "Đậu nành non", "高山烏龍茶": "Trà Ô Long núi cao", "黃金蕎麥茶": "Trà kiều mạch", "輕焙高山四季春": "Trà Tứ Quý rang nhẹ", "高山烏龍鮮奶茶": "Trà sữa tươi Ô Long", "黃金蕎麥鮮奶茶": "Trà sữa tươi kiều mạch", "輕焙四季春鮮奶茶": "Trà sữa tươi Tứ Quý", "小菜": "Món phụ", "酸菜": "Dưa cải", "加酸菜": "Có", "不加酸菜": "Không", "蔥": "Hành lá", "加蔥": "Có", "不加蔥": "Không", "辣度": "Độ cay", "不加辣": "Không cay", "小辣": "Cay ít", "中辣": "Cay vừa", "大辣": "Cay nhiều", "另附辣包": "Ớt để riêng", "剩 {n} 份": "Còn {n} phần", "人氣": "Bán chạy", "準備中": "Sắp có", "香Q小麥卷": "Mì căn ống tre", "豆乾": "Đậu hũ khô miếng nhỏ", "手搖茶": "Trà lắc", "冰塊": "Đá", "甜度": "Độ ngọt", "正常冰": "Đá bình thường", "少冰": "Ít đá", "去冰(小碎冰)": "Không đá (ít đá bào)", "正常糖": "Ngọt bình thường", "半糖": "Nửa đường", "微糖": "Ít đường", "無糖": "Không đường", "請選擇冰塊和甜度": "Vui lòng chọn đá và độ ngọt", "贈品飲料請選擇冰塊和甜度": "Chọn đá và độ ngọt cho đồ uống tặng", "再加 {n} 杯可享半價": "Còn {n} ly nửa giá", "已加購": "Đã thêm", "不用餐具": "Không lấy đũa muỗng", "滿額折": "Giảm khi đủ tiền", "看飲料": "Xem đồ uống", "💸 已滿 ${t}，飲料每杯折 ${a}": "💸 Đủ ${t}: giảm ${a} mỗi ly", "份": "phần", "醬": "Sốt", "不加香油": "Không", "辣包": "Ớt", "醬多": "Nhiều sốt", "香油": "Dầu mè", "🧋 推薦加購：飲料半價（限 {n} 杯）": "🧋 Ưu đãi: đồ uống nửa giá (tối đa {n} ly)", "🧋 再點 ${n}，飲料半價": "🧋 Thêm ${n} để đồ uống nửa giá", "加購酸菜": "Thêm dưa cải", "黃金比例": "Tỷ lệ vàng", "小碎冰": "Đá bào", "要不要加一杯飲料？": "Thêm một ly đồ uống?", "不用了": "Không, cảm ơn", "半價": "Nửa giá", "不加醬": "Không sốt", "醬少": "Ít sốt", "要餐具": "Lấy đũa muỗng", "加香油": "Có", "推薦加購": "Ưu đãi mua thêm", "辣醬拌入": "Trộn sẵn", "💸 再點 ${n}，飲料每杯折 ${a}": "💸 Thêm ${n}: giảm ${a} mỗi ly", "餐具": "Đũa muỗng", "辣包另附": "Để riêng"}, "th": {"全部商品": "ทั้งหมด", "愛呷肉": "เนื้อสัตว์", "傳統美食": "อาหารดั้งเดิม", "愛呷菜": "ผัก", "冷泡茶": "ชาสกัดเย็น", "蜂巢牛肚": "ผ้าขี้ริ้ววัว", "鴨腸頭": "เอ็นเป็ด", "鴨脆腸": "ไส้เป็ด", "鴨胗": "กึ๋นเป็ด", "豬耳朵": "หูหมู", "豬腱子肉": "น่องหมู", "手工貢丸": "ลูกชิ้นหมูทำมือ", "豆皮": "ฟองเต้าหู้ม้วน", "豆包": "ฟองเต้าหู้แผ่น", "蒟蒻腰花": "บุกก้อน", "麵香竹腸": "หมี่กึง", "百頁豆腐": "เต้าหู้ไป่เย่", "大黑豆干": "เต้าหู้แห้ง", "芋頭粿": "ขนมเผือก", "招牌米血": "เค้กข้าวเลือดหมู", "手工甜不辣": "ปลาแผ่นทำมือ", "玉米筍": "ข้าวโพดอ่อน", "杏鮑菇": "เห็ดออรินจิ", "四季豆": "ถั่วแขก", "花椰菜": "บร็อคโคลี่", "小黃瓜": "แตงกวา", "高麗菜": "กะหล่ำปลี", "肝連肉": "หมูกะบังลม", "海帶": "สาหร่ายทะเล", "滷花生": "ถั่วลิสงพะโล้", "毛豆": "ถั่วแระญี่ปุ่น", "高山烏龍茶": "ชาอู่หลงภูเขาสูง", "黃金蕎麥茶": "ชาบัควีท", "輕焙高山四季春": "ชาสี่ฤดูคั่วอ่อน", "高山烏龍鮮奶茶": "ชานมสดอู่หลง", "黃金蕎麥鮮奶茶": "ชานมสดบัควีท", "輕焙四季春鮮奶茶": "ชานมสดสี่ฤดู", "小菜": "เครื่องเคียง", "酸菜": "ผักดอง", "加酸菜": "ใส่", "不加酸菜": "ไม่ใส่", "蔥": "ต้นหอม", "加蔥": "ใส่", "不加蔥": "ไม่ใส่", "辣度": "ความเผ็ด", "不加辣": "ไม่เผ็ด", "小辣": "เผ็ดน้อย", "中辣": "เผ็ดกลาง", "大辣": "เผ็ดมาก", "另附辣包": "แยกซองพริก", "剩 {n} 份": "เหลือ {n} ที่", "人氣": "ขายดี", "準備中": "เร็วๆ นี้", "香Q小麥卷": "หมี่กึง", "豆乾": "เต้าหู้แห้งชิ้นเล็ก", "手搖茶": "ชาเขย่า", "冰塊": "น้ำแข็ง", "甜度": "ความหวาน", "正常冰": "น้ำแข็งปกติ", "少冰": "น้ำแข็งน้อย", "去冰(小碎冰)": "ไม่ใส่น้ำแข็ง (น้ำแข็งบดเล็กน้อย)", "正常糖": "หวานปกติ", "半糖": "หวานครึ่งเดียว", "微糖": "หวานน้อย", "無糖": "ไม่หวาน", "請選擇冰塊和甜度": "กรุณาเลือกน้ำแข็งและความหวาน", "贈品飲料請選擇冰塊和甜度": "เลือกน้ำแข็งและความหวานสำหรับเครื่องดื่มแถม", "再加 {n} 杯可享半價": "อีก {n} แก้วครึ่งราคา", "已加購": "เพิ่มแล้ว", "不用餐具": "ไม่เอา", "滿額折": "ลดเมื่อซื้อครบ", "看飲料": "ดูเครื่องดื่ม", "💸 已滿 ${t}，飲料每杯折 ${a}": "💸 ครบ ${t} ลดแก้วละ ${a}", "份": "ที่", "醬": "ซอส", "不加香油": "ไม่ใส่", "辣包": "พริก", "醬多": "เยอะ", "香油": "น้ำมันงา", "🧋 推薦加購：飲料半價（限 {n} 杯）": "🧋 ข้อเสนอ: เครื่องดื่มครึ่งราคา (สูงสุด {n} แก้ว)", "🧋 再點 ${n}，飲料半價": "🧋 อีก ${n} เครื่องดื่มครึ่งราคา", "加購酸菜": "เพิ่มผักดอง", "黃金比例": "สูตรมาตรฐาน", "小碎冰": "น้ำแข็งบด", "要不要加一杯飲料？": "เพิ่มเครื่องดื่มไหม?", "不用了": "ไม่เป็นไร", "半價": "ครึ่งราคา", "不加醬": "ไม่ใส่", "醬少": "น้อย", "要餐具": "เอา", "加香油": "ใส่", "推薦加購": "ข้อเสนอซื้อเพิ่ม", "辣醬拌入": "คลุกรวม", "💸 再點 ${n}，飲料每杯折 ${a}": "💸 อีก ${n} ลดแก้วละ ${a}", "餐具": "ช้อนส้อม", "辣包另附": "แยกถุง"}};
 var UNIT_T = {'顆':{en:' pcs',vi:' viên',th:' ลูก'},'片':{en:' slices',vi:' miếng',th:' ชิ้น'}};
@@ -454,63 +461,147 @@ function addonLines(){
   if (!hasFood()) return [];
   return visAddons().filter(function(a){ return S.addons[a.id] > 0; }).map(function(a){ return {id:a.id, name:a.name, price:Number(a.price), qty:S.addons[a.id]}; });
 }
-function promoCalc(skipSold){
-  var h = PROMO.half || {}, d = PROMO.disc || {}, sub = cartTotal(skipSold), off = {}, disc = 0, left = 0, ok = false, kind = '';
-  var lines = cartLines().filter(function(l){ return !(skipSold && l.sold); });
-  if (h.on && Number(h.max) > 0) {
-    kind = 'half'; ok = sub >= (Number(h.threshold) || 0); left = Number(h.max);
-    if (ok) lines.filter(function(l){ return isDrink(l.it); }).sort(function(a, b){ return b.it.price - a.it.price; }).forEach(function(l){
-      if (left <= 0) return;
-      var k = Math.min(l.qty, left); left -= k;
-      var save = (l.it.price - Math.round(l.it.price / 2)) * k;
-      off[l.key] = {amt:save, cups:k, kind:'half'}; disc += save;
-    });
-  } else if (d.on && Number(d.amount) > 0) {
-    kind = 'disc'; ok = sub >= (Number(d.threshold) || 0);
-    if (ok) lines.filter(function(l){ return isDrink(l.it); }).forEach(function(l){
-      var save = Math.min(l.it.price, Number(d.amount)) * l.qty;
-      off[l.key] = {amt:save, cups:l.qty, kind:'disc'}; disc += save;
-    });
+// ═══ 優惠計算 v2（2026-10-20）BEGIN ═══
+// 自助機 index.html、平板 staff.html、LINE 點餐頁、點餐機 recipe.js、線上伺服器 server.js 都放同一段，改的話五個地方一起改
+//   R（優惠設定）：
+//     disc  滿額折   { on, threshold, amount, items:[品項id] }   指定品項每份折 amount 元，不限份數
+//     addon 加購優惠 { on, popup, groups:[{ id, on, items:[品項id], pct, threshold, max }] }
+//                    pct＝折數（80＝8 折、50＝半價）；threshold＝滿多少才有（0＝不用滿額）；max＝一張單最多幾份
+//     rec   推薦加點 { on, popup, items:[品項id] }（不打折，只是推薦）
+//   lines：[{ key, id, price, qty, gift }]（price＝原價；gift＝贈品，不算）
+//   sub：折扣前的總金額（含加購酸菜），用來判斷滿額
+//   同一份東西只打一種折、取比較便宜的；加購優惠每次挑「省最多」的那一份先用掉限量
+function promoPct(pct) { pct = Number(pct); return pct === 50 ? '半價' : (pct % 10 === 0 ? pct / 10 : pct) + '折'; }
+function promoLabel(pct) { return '加購' + promoPct(pct); }
+function promoText(p) { return p === '推薦加購' ? '推薦加購半價' : String(p || ''); }   // 10/19 舊單的「推薦加購」＝飲料半價
+function promoShort(p) { return p === '推薦加購' ? '半價' : String(p || ''); }
+function promoEngine(lines, R, sub) {
+  R = R || {};
+  var d = R.disc || {}, A = R.addon || {};
+  function has(arr, id) { for (var i = 0; i < (arr || []).length; i++) if (String(arr[i]) === String(id)) return true; return false; }
+  var dOn = !!(d.on && Number(d.amount) > 0 && (d.items || []).length);
+  var dOk = dOn && sub >= (Number(d.threshold) || 0);
+  function dSave(l) { return dOk && has(d.items, l.id) ? Math.min(Number(l.price), Number(d.amount)) : 0; }
+  function gPrice(g, p) { return Math.round(Number(p) * Number(g.pct) / 100); }
+  var groups = (A.on && A.groups ? A.groups : []).map(function (g) {
+    var on = g.on !== false && Number(g.max) > 0 && Number(g.pct) > 0 && Number(g.pct) < 100 && (g.items || []).length > 0;
+    return { g: g, on: on, ok: on && sub >= (Number(g.threshold) || 0), need: Math.max(0, (Number(g.threshold) || 0) - sub),
+             left: on ? Number(g.max) : 0, used: 0 };
+  });
+  var rem = lines.map(function (l) { return l.gift ? 0 : Number(l.qty) || 0; });
+  var parts = lines.map(function () { return []; });
+  function put(li, part) {
+    var ps = parts[li];
+    for (var i = 0; i < ps.length; i++) if (ps[i].promo === part.promo && ps[i].price === part.price) { ps[i].qty += part.qty; ps[i].save += part.save; return; }
+    ps.push(part);
   }
-  return {sub:sub, disc:disc, off:off, ok:ok, left:left, kind:kind};
+  for (var guard = 0; guard < 1000; guard++) {
+    var best = null;
+    for (var gi = 0; gi < groups.length; gi++) {
+      var s = groups[gi]; if (!s.ok || s.left <= 0) continue;
+      for (var li = 0; li < lines.length; li++) {
+        var l = lines[li]; if (rem[li] <= 0 || !has(s.g.items, l.id)) continue;
+        var save = Number(l.price) - gPrice(s.g, l.price);
+        var gain = save - dSave(l);                       // 比滿額折多省的（同一份只打一種折）
+        if (gain <= 0) continue;
+        if (!best || gain > best.gain) best = { gi: gi, li: li, save: save, gain: gain };
+      }
+    }
+    if (!best) break;
+    var bs = groups[best.gi], bl = lines[best.li], k = Math.min(bs.left, rem[best.li]);
+    bs.left -= k; bs.used += k; rem[best.li] -= k;
+    put(best.li, { qty: k, price: gPrice(bs.g, bl.price), promo: promoLabel(bs.g.pct), save: best.save * k });
+  }
+  for (var j = 0; j < lines.length; j++) {
+    var sv = dSave(lines[j]);
+    if (sv > 0 && rem[j] > 0) { put(j, { qty: rem[j], price: Number(lines[j].price) - sv, promo: '滿額折', save: sv * rem[j] }); rem[j] = 0; }
+  }
+  var off = {}, disc = 0;
+  lines.forEach(function (l, i) {
+    if (!parts[i].length) return;
+    var amt = 0; parts[i].forEach(function (p) { amt += p.save; });
+    off[l.key] = { amt: amt, parts: parts[i] }; disc += amt;
+  });
+  return { sub: sub, disc: disc, off: off, parts: parts, rem: rem, groups: groups, discOn: dOn, discOk: dOk,
+           discNeed: Math.max(0, (Number(d.threshold) || 0) - sub) };
+}
+// ═══ 優惠計算 v2 END ═══
+function promoCalc(skipSold){
+  var lines = cartLines().filter(function(l){ return !(skipSold && l.sold); });
+  return promoEngine(lines.map(function(l){ return { key:l.key, id:l.it.id, price:l.it.price, qty:l.qty }; }), PROMO, cartTotal(skipSold));
 }
 function payTotal(skipSold){ var c = promoCalc(skipSold); return c.sub - c.disc; }
-function promoTag(o){ return o ? '<span class="prline">' + (o.kind === 'half' ? '🧋 ' + esc(tr('推薦加購')) + ' ' + esc(tr('半價')) + (o.cups > 1 ? ' ×' + o.cups : '') : '💸 ' + esc(tr('滿額折'))) + '　-$' + o.amt + '</span>' : ''; }
+function trv(zh, v){ var s = tr(zh); Object.keys(v || {}).forEach(function(k){ s = s.split('{' + k + '}').join(v[k]); }); return s; }
+// 優惠標籤翻成客人選的語言：加購8折 → Add-on 20% off
+function promoTL(p){
+  if (p === '推薦加購' || p === 'half') return tr('推薦加購') + ' ' + tr('半價');
+  if (p === 'disc') return tr('滿額折');
+  var m = /^加購(\d+)折$/.exec(String(p || ''));
+  if (m) { var n = Number(m[1]), pct = n < 10 ? n * 10 : n; return trv('加購{n}折', { n:m[1], p:100 - pct }); }
+  return tr(String(p || ''));
+}
+function promoTag(o){
+  if (!o) return '';
+  return o.parts.map(function(x){ return '<span class="prline">' + (x.promo === '滿額折' ? '💸 ' : '🎉 ') + esc(promoTL(x.promo)) + (x.qty > 1 ? ' ×' + x.qty : '') + '　-$' + x.save + '</span>'; }).join('');
+}
 function promoHints(){
   var c = promoCalc(true), out = [];
-  if (c.kind === 'disc') out.push(c.ok ? tr('💸 已滿 ${t}，飲料每杯折 ${a}').replace('{t}', PROMO.disc.threshold).replace('{a}', PROMO.disc.amount)
-                                       : tr('💸 再點 ${n}，飲料每杯折 ${a}').replace('{n}', Number(PROMO.disc.threshold) - c.sub).replace('{a}', PROMO.disc.amount));
-  if (c.kind === 'half') out.push(c.ok ? tr('🧋 推薦加購：飲料半價（限 {n} 杯）').replace('{n}', PROMO.half.max)
-                                       : tr('🧋 再點 ${n}，飲料半價').replace('{n}', Number(PROMO.half.threshold) - c.sub));
+  if (c.discOn) out.push(c.discOk ? (Number(PROMO.disc.threshold) ? trv('💸 已滿 ${t}，指定品項每份折 ${a}', { t:PROMO.disc.threshold, a:PROMO.disc.amount }) : trv('💸 指定品項每份折 ${a}', { a:PROMO.disc.amount }))
+                                  : trv('💸 再點 ${n}，指定品項每份折 ${a}', { n:c.discNeed, a:PROMO.disc.amount }));
+  var gs = c.groups.filter(function(s){ return s.on; });
+  var ready = gs.filter(function(s){ return s.ok && s.left > 0; }), wait = gs.filter(function(s){ return !s.ok; });
+  if (ready.length) out.push(tr('🎉 加購優惠') + '　' + ready.map(function(s){ return promoTL(promoLabel(s.g.pct)); }).join('、'));
+  else if (wait.length) out.push(trv('🎉 再點 ${n} 享加購優惠', { n:Math.min.apply(null, wait.map(function(s){ return s.need; })) }));
   return out;
 }
+function promoTile(id, deal){
+  var it = item(String(id)); if (!it || !canOrder(it)) return '';
+  return '<button type="button" class="ptile" data-act="' + (isDrink(it) ? 'drink' : 'inc') + '" data-id="' + it.id + '"><img src="' + IMGS[it.id] + '" alt=""><span>' + esc(iname(it)) + '<br>' +
+    (deal ? '<s>' + money(it.price) + '</s><em>' + money(Math.round(it.price * deal / 100)) + '</em>' : '<em>' + money(it.price) + '</em>') + '</span></button>';
+}
+function recItems(){
+  var R = PROMO.rec || {};
+  if (!R.on) return [];
+  return (R.items || []).filter(function(id){ var it = item(String(id)); return it && canOrder(it) && !idQty(it.id); });
+}
 function promoCardHtml(){
-  var c = promoCalc(true);
-  if (c.kind !== 'half') return '';
-  if (!c.ok) return '<div class="promocard miss"><b>' + esc(tr('🧋 再點 ${n}，飲料半價').replace('{n}', Number(PROMO.half.threshold) - c.sub)) + '</b></div>';
-  var h = '<div class="promocard" id="promocard"><b>' + esc(tr('🧋 推薦加購：飲料半價（限 {n} 杯）').replace('{n}', PROMO.half.max)) + '</b>';
-  if (c.left > 0){
-    h += '<div class="hint">' + esc(tr('再加 {n} 杯可享半價').replace('{n}', c.left)) + '</div><div class="ptiles">';
-    MENU.forEach(function(it){
-      if (!isDrink(it) || !canOrder(it)) return;
-      h += '<button type="button" class="ptile" data-act="drink" data-id="' + it.id + '"><img src="' + IMGS[it.id] + '" alt=""><span>' + esc(iname(it)) + '<br><s>' + money(it.price) + '</s><em>' + money(Math.round(it.price / 2)) + '</em></span></button>';
-    });
-    h += '</div>';
-  } else h += '<div class="hint">✔ ' + esc(tr('已加購')) + '</div>';
-  return h + '</div>';
+  var c = promoCalc(true), A = PROMO.addon || {}, h = '';
+  if (A.on) {
+    var gs = c.groups.filter(function(s){ return s.on; });
+    var ready = gs.filter(function(s){ return s.ok; }), wait = gs.filter(function(s){ return !s.ok; });
+    if (ready.length) {
+      h += '<div class="promocard" id="promocard"><b>' + esc(tr('🎉 加購優惠')) + '</b>';
+      ready.forEach(function(s){
+        h += '<div class="hint"><strong>' + esc(promoTL(promoLabel(s.g.pct))) + '</strong>　' + (s.left > 0 ? esc(trv('還可加購 {n} 份', { n:s.left })) : '✔ ' + esc(tr('已加購'))) + '</div>';
+        if (s.left > 0) h += '<div class="ptiles">' + s.g.items.map(function(id){ return promoTile(id, s.g.pct); }).join('') + '</div>';
+      });
+      h += '</div>';
+    }
+    if (wait.length) h += '<div class="promocard miss"><b>' + esc(trv('🎉 再點 ${n} 享加購優惠', { n:Math.min.apply(null, wait.map(function(s){ return s.need; })) })) + '</b></div>';
+  }
+  var rec = recItems();
+  if (rec.length) h += '<div class="promocard miss" id="reccard"><b>' + esc(tr('👍 店長推薦')) + '</b><div class="ptiles">' + rec.map(function(id){ return promoTile(id, 0); }).join('') + '</div></div>';
+  return h;
 }
 function optText(opt){ return String(opt || '').split('・').filter(Boolean).map(tr).join(S.lang === 'zh' ? '・' : ' · '); }
 function giftIsDrink(){ var g = giftItem(); if (!g) return false; for (var i = 0; i < MENU.length; i++) if (MENU[i].name === g.name) return isDrink(MENU[i]); return false; }
 function optReady(sel){ return DOPTS.every(function(g){ return sel[g.key]; }); }
 function optJoin(sel){ return DOPTS.map(function(g){ return sel[g.key]; }).join('・'); }
 // 點飲料：從下面滑出選冰塊甜度，選完才能加入
-// 推薦加購跳窗（點餐機設定有開才跳，一位客人只問一次）
+// 加點跳窗（加購優惠、推薦加點各自有開關，點餐機設定）：一位客人只問一次
 function halfPopup(){
+  var A = PROMO.addon || {}, R = PROMO.rec || {};
+  if (S.halfAsked || !((A.on && A.popup) || (R.on && R.popup))) return false;
   var c = promoCalc(true);
-  if (S.halfAsked || !PROMO.half || !PROMO.half.popup || c.kind !== 'half' || !c.ok || c.left !== Number(PROMO.half.max)) return false;
+  var deals = A.on && A.popup ? c.groups.filter(function(s){ return s.ok && s.used === 0 && s.left > 0; }) : [];
+  var recs = R.on && R.popup ? recItems() : [];
+  if (!deals.length && !recs.length) return false;
+  var nm = function(id){ var it = item(String(id)); return it ? iname(it) : ''; };
+  var lines = deals.map(function(s){ return '🎉 ' + esc(s.g.items.map(nm).filter(Boolean).slice(0, 4).join('、')) + '　<strong>' + esc(promoTL(promoLabel(s.g.pct))) + '</strong>'; });
+  if (recs.length) lines.push(esc(tr('👍 店長推薦')) + '：' + esc(recs.map(nm).slice(0, 4).join('、')));
   DK = null;
-  document.getElementById('dkbox').innerHTML = '<h3>🧋 ' + esc(tr('要不要加一杯飲料？')) + '</h3><div class="pr">' + esc(tr('🧋 推薦加購：飲料半價（限 {n} 杯）').replace('{n}', PROMO.half.max)) + '</div>' +
-    '<div class="row"><button type="button" class="btn ghost" data-act="popno">' + esc(tr('不用了')) + '</button><button type="button" class="btn" data-act="popyes">' + esc(tr('看飲料')) + '</button></div>';
+  document.getElementById('dkbox').innerHTML = '<h3>' + (deals.length ? '🎉 ' : '👍 ') + esc(tr('要不要再加點？')) + '</h3><div class="pr" style="line-height:1.7">' + lines.join('<br>') + '</div>' +
+    '<div class="row"><button type="button" class="btn ghost" data-act="popno">' + esc(tr('不用了')) + '</button><button type="button" class="btn" data-act="popyes">' + esc(tr('看看')) + '</button></div>';
   document.getElementById('dkbg').classList.add('on'); document.getElementById('dkbox').classList.add('on');
   return true;
 }
@@ -538,6 +629,11 @@ document.getElementById('dkbg').addEventListener('click', closeDrink);
 function cartTotal(skipSold){ return cartLines().reduce(function(s, l){ return (skipSold && l.sold) ? s : s + l.it.price * l.qty; }, 0) + addonLines().reduce(function(s, a){ return s + a.price * a.qty; }, 0); }   // 折扣前（滿額門檻用）
 function cartCount(){ return cartLines().reduce(function(s, l){ return s + l.qty; }, 0); }
 function giftItem(){ return DEMO.giftOn && DEMO.giftName ? {name: DEMO.giftName} : null; }
+// 1.2 線上付款的掛鉤：試玩版一律到店付款，正式模式（LIVE）會換掉
+function payCardHtml(){ return ''; }
+function payNote(){ return t('pay'); }
+function orderPayHtml(o){ return '<div class="pay">' + t('pay') + '</div>'; }
+function orderShowThis(o){ return t('showThis'); }
 function giftReached(total){ return !!(giftItem() && total >= Number(DEMO.giftMin)); }
 function setQty(key, q){
   var it0 = item(keyId(key));
@@ -550,7 +646,7 @@ function setQty(key, q){
 /* ============================================================
    訂單
    ============================================================ */
-var OPEN_ST = ['sent','accepted','making','ready'];
+var OPEN_ST = ['unpaid','sent','accepted','making','ready'];
 function myOpenOrders(){ return ORDERS.filter(function(o){ return OPEN_ST.indexOf(o.status) >= 0; }); }
 function findOrder(id){ for (var i = 0; i < ORDERS.length; i++) if (ORDERS[i].id === id) return ORDERS[i]; return null; }
 
@@ -602,7 +698,7 @@ function submitOrder(){
   var o = {
     id: 'o' + Date.now().toString(36), no: no.no, base: no.base, day: todayKey(),
     name: name, phone: phone, line: DEMO.lineName, pickup: pickup, asap: S.pickMode === 'asap',
-    items: lines.map(function(l){ var po = pc.off[l.key]; return {id:l.it.id, name:l.it.name, qty:l.qty, price:l.it.price, opt:l.opt, promoOff: po ? po.amt : 0, promo: po ? po.kind : ''}; })
+    items: lines.map(function(l){ var po = pc.off[l.key]; return {id:l.it.id, name:l.it.name, qty:l.qty, price:l.it.price, opt:l.opt, promoOff: po ? po.amt : 0, promo: po ? po.parts.map(function(x){ return x.promo; }).join('、') : ''}; })
       .concat(addonLines().map(function(a){ return {id:a.id, name:a.name, qty:a.qty, price:a.price}; })),
     gift: g, giftOpt: g && giftIsDrink() ? optJoin(S.giftOpt || {}) : '', opts: hasFood() ? Object.assign({}, S.opts) : {}, optsText: optsText,
     note: (S.note || '').trim().slice(0, NOTE_MAX), total: total,
@@ -723,7 +819,7 @@ function viewCheckout(){
       '<button type="button" class="add" data-act="ainc" data-id="' + a.id + '">+</button></div><div class="a">' + money(a.price * a.qty) + '</div></li>';
   });
   if (g) h += '<li><div class="n">' + t('gift') + '：' + esc(tr(g.name)) + (giftIsDrink() && optReady(S.giftOpt || {}) ? '<span class="dkopt">' + esc(optText(optJoin(S.giftOpt))) + '</span>' : '') + '</div><div>x1</div><div class="a">$0</div></li>';
-  h += '</ul><div class="tot"><span>' + t('total') + '</span><span>' + money(total) + '</span></div><div class="pay">' + t('pay') + '</div></div>';
+  h += '</ul><div class="tot"><span>' + t('total') + '</span><span>' + money(total) + '</span></div><div class="pay">' + payNote() + '</div></div>';
 
   // 滿額贈送飲料：選冰塊甜度
   if (g && giftIsDrink()){
@@ -776,13 +872,14 @@ function viewCheckout(){
   h += '<div class="field"><label for="f-phone">' + t('phone') + '</label><input type="tel" id="f-phone" inputmode="numeric" autocomplete="tel" maxlength="12" placeholder="0912345678" value="' + esc(S.form.phone) + '"></div>';
   h += '<label class="check"><input type="checkbox" id="f-save"' + (S.saveDef ? ' checked' : '') + '> ' + t('saveDef') + '</label></div>';
 
+  h += payCardHtml();
   h += '<button class="btn wide" type="button" data-act="submit"' + ((isPaused() || isClosed()) ? ' disabled' : '') + '>' + t('submit') + '　' + money(total) + '</button>';
   h += '<div style="height:32px"></div></div>';
   return h;
 }
 
 function statusHtml(o){
-  var cls = o.status === 'ready' ? 'ready' : (o.status === 'sent' || o.status === 'accepted' || o.status === 'making') ? 'live' : '';
+  var cls = o.status === 'ready' ? 'ready' : o.status === 'unpaid' ? 'unpaid' : (o.status === 'sent' || o.status === 'accepted' || o.status === 'making') ? 'live' : '';
   return '<div class="status ' + cls + '"><span class="dot"></span>' + t('st_' + o.status) + '</div>';
 }
 
@@ -801,7 +898,7 @@ function viewOrder(id){
     var it = item(x.id) || {name:x.name};
     h += '<li><div class="n">' + esc(iname(it)) + (S.lang !== 'zh' ? '<small>' + esc(x.name) + '</small>' : '') +
       (x.opt ? '<span class="dkopt">' + esc(optText(x.opt)) + '</span>' : '') +
-      (x.promo ? '<span class="prline">' + (x.promo === '推薦加購' || x.promo === 'half' ? '🧋 ' + esc(tr('推薦加購')) + ' ' + esc(tr('半價')) : '💸 ' + esc(tr('滿額折'))) + '</span>' : '') +
+      (x.promo ? '<span class="prline">' + String(x.promo).split('、').map(function(p){ return (p === '滿額折' || p === 'disc' ? '💸 ' : '🎉 ') + esc(promoTL(p)); }).join('　') + '</span>' : '') +
       '</div><div>x' + x.qty + '</div><div class="a">' + money(x.price * x.qty - (x.promoOff || 0)) + '</div></li>';
   });
   if (o.gift) h += '<li><div class="n">' + t('gift') + '：' + esc(tr(o.gift)) + (o.giftOpt ? '<span class="dkopt">' + esc(optText(o.giftOpt)) + '</span>' : '') + '</div><div>x1</div><div class="a">$0</div></li>';
@@ -811,9 +908,9 @@ function viewOrder(id){
     : OPTIONS.filter(function(x){ return o.opts[x.key]; }).map(function(x){ return esc(oname(x.title)) + ': ' + esc(oname(o.opts[x.key])); }).join(', ')) + '</div>';
   if (o.note) h += '<div class="noteline">' + t('note') + '：' + esc(o.note) + '</div>';
   h += '<div class="tot"><span>' + t('total') + '</span><span>' + money(o.total) + '</span></div>';
-  h += '<div class="pay">' + t('pay') + '</div>';
+  h += orderPayHtml(o);
   h += '</div>';
-  h += '<p class="showthis">' + t('showThis') + '</p>';
+  h += '<p class="showthis">' + orderShowThis(o) + '</p>';
   h += '<button class="btn wide ghost" type="button" data-act="home">' + t('orderMore') + '</button>';
   h += '<div style="height:32px"></div></div>';
   return h;
@@ -864,7 +961,7 @@ document.addEventListener('click', function(e){
   }
   else if (a === 'ainc' || a === 'adec'){ S.addons[id] = Math.max(0, Math.min(20, (S.addons[id] || 0) + (a === 'ainc' ? 1 : -1))); render(); }
   else if (a === 'popno'){ closeDrink(); S.halfAsked = true; submitOrder(); }
-  else if (a === 'popyes'){ closeDrink(); S.halfAsked = true; var pcd = document.getElementById('promocard'); if (pcd) pcd.scrollIntoView({behavior:'smooth', block:'center'}); }
+  else if (a === 'popyes'){ closeDrink(); S.halfAsked = true; var pcd = document.getElementById('promocard') || document.getElementById('reccard'); if (pcd) pcd.scrollIntoView({behavior:'smooth', block:'center'}); }
   else if (a === 'giftopt'){ S.giftOpt = S.giftOpt || {}; S.giftOpt[b.getAttribute('data-k')] = b.getAttribute('data-v'); render(); }
   else if (a === 'checkout'){ S.error = ''; go('#/checkout'); }
   else if (a === 'home'){ S.error = ''; go('#/'); }
@@ -967,6 +1064,96 @@ document.getElementById('sheet').addEventListener('change', function(e){
 if (LIVE.url) (function () {
   var AUTH = null, LINE_NAME = '', SHOP = null, GIFT = null, BUSY = false, READY = false;
   document.getElementById('btn-test').style.display = 'none';
+  (function () { var st = document.createElement('style'); st.textContent = '.demo-note{display:none}'; document.head.appendChild(st); })();
+
+  // ── 1.2 線上付款 ──
+  var PAYM = { online: false, cash: true, timeout: 10 };
+  S.payMode = load('w24_pay', 'online');
+  Object.assign(UI.zh, { payTitle: '付款方式', payOnline: '線上付款', payOnlineSub: 'LINE Pay、信用卡…', payCash: '到店付款', payCashSub: '取餐時付現金',
+    payOnlineNote: '送出後會前往付款頁，付款完成訂單才會送到店裡', st_unpaid: '等待付款', unpaidMsg: '這張單還沒付款，{m} 分鐘內沒付款會自動取消',
+    payNow: '前往付款', payCancel: '取消這張單', paidOnline: '已線上付款', paidShow: '取餐時出示此畫面即可，不用再付款',
+    checking: '正在確認付款結果…', cancelAsk: '確定要取消這張單嗎？', refundedTag: '已退款 {m}', toPay: '正在前往付款頁…', payFail: '付款沒有完成，可以再試一次' });
+  Object.assign(UI.en, { payTitle: 'Payment', payOnline: 'Pay online', payOnlineSub: 'LINE Pay, card…', payCash: 'Pay at pickup', payCashSub: 'Cash at the shop',
+    payOnlineNote: "You'll go to the payment page next. The shop gets your order after payment.", st_unpaid: 'Waiting for payment', unpaidMsg: 'Not paid yet. The order is cancelled if unpaid within {m} minutes.',
+    payNow: 'Pay now', payCancel: 'Cancel this order', paidOnline: 'Paid online', paidShow: 'Show this screen at pickup. No more payment needed.',
+    checking: 'Checking payment…', cancelAsk: 'Cancel this order?', refundedTag: 'Refunded {m}', toPay: 'Opening the payment page…', payFail: 'Payment was not completed. Please try again.' });
+  Object.assign(UI.vi, { payTitle: 'Thanh toán', payOnline: 'Thanh toán online', payOnlineSub: 'LINE Pay, thẻ…', payCash: 'Trả khi lấy món', payCashSub: 'Tiền mặt tại cửa hàng',
+    payOnlineNote: 'Sau khi gửi sẽ chuyển đến trang thanh toán. Thanh toán xong cửa hàng mới nhận đơn.', st_unpaid: 'Chờ thanh toán', unpaidMsg: 'Đơn chưa thanh toán, sẽ tự hủy nếu không thanh toán trong {m} phút.',
+    payNow: 'Thanh toán', payCancel: 'Hủy đơn này', paidOnline: 'Đã thanh toán online', paidShow: 'Đưa màn hình này khi lấy món, không cần trả thêm.',
+    checking: 'Đang kiểm tra thanh toán…', cancelAsk: 'Hủy đơn này?', refundedTag: 'Đã hoàn {m}', toPay: 'Đang mở trang thanh toán…', payFail: 'Thanh toán chưa hoàn tất, vui lòng thử lại.' });
+  Object.assign(UI.th, { payTitle: 'การชำระเงิน', payOnline: 'จ่ายออนไลน์', payOnlineSub: 'LINE Pay, บัตร…', payCash: 'จ่ายตอนรับอาหาร', payCashSub: 'เงินสดที่ร้าน',
+    payOnlineNote: 'กดส่งแล้วจะไปหน้าชำระเงิน ชำระเสร็จร้านจึงจะได้รับออเดอร์', st_unpaid: 'รอชำระเงิน', unpaidMsg: 'ยังไม่ได้ชำระเงิน ถ้าไม่ชำระภายใน {m} นาทีออเดอร์จะถูกยกเลิก',
+    payNow: 'ชำระเงิน', payCancel: 'ยกเลิกออเดอร์นี้', paidOnline: 'ชำระออนไลน์แล้ว', paidShow: 'แสดงหน้าจอนี้ตอนรับอาหาร ไม่ต้องจ่ายเพิ่ม',
+    checking: 'กำลังตรวจสอบการชำระเงิน…', cancelAsk: 'ยกเลิกออเดอร์นี้?', refundedTag: 'คืนเงินแล้ว {m}', toPay: 'กำลังเปิดหน้าชำระเงิน…', payFail: 'การชำระเงินไม่สำเร็จ กรุณาลองใหม่' });
+  function payMode() {
+    if (PAYM.online && PAYM.cash) return S.payMode === 'cash' ? 'cash' : 'online';
+    return PAYM.online ? 'online' : 'cash';
+  }
+  payCardHtml = function () {
+    if (!(PAYM.online && PAYM.cash)) return '';
+    var m = payMode();
+    return '<div class="card"><h3>' + t('payTitle') + '</h3><div class="paychips">' +
+      '<button type="button" class="chip" data-act="paymode" data-v="online" aria-pressed="' + (m === 'online') + '">' + t('payOnline') + '<small>' + t('payOnlineSub') + '</small></button>' +
+      '<button type="button" class="chip" data-act="paymode" data-v="cash" aria-pressed="' + (m === 'cash') + '">' + t('payCash') + '<small>' + t('payCashSub') + '</small></button>' +
+      '</div></div>';
+  };
+  payNote = function () { return payMode() === 'online' ? t('payOnlineNote') : t('pay'); };
+  orderPayHtml = function (o) {
+    if (o.pay !== 'online') return '<div class="pay">' + t('pay') + '</div>';
+    if (o.status === 'unpaid') {
+      return '<div class="paybox"><p>' + (S.payFail === o.id ? esc(t('payFail')) + '<br>' : '') + esc(t('unpaidMsg', { m: PAYM.timeout || 10 })) + '</p>' +
+        '<button class="btn wide" type="button" data-act="paynow" data-id="' + esc(o.id) + '">' + t('payNow') + '　' + money(o.total) + '</button>' +
+        '<button class="btn wide ghost" type="button" data-act="paycancel" data-id="' + esc(o.id) + '">' + t('payCancel') + '</button></div>';
+    }
+    if (o.paid) return '<div class="pay"><span class="paidtag">✓ ' + t('paidOnline') + '</span>' + (o.payTypeName ? '　' + esc(o.payTypeName) : '') +
+      (o.refunded ? '<br>' + t('refundedTag', { m: money(o.refunded) }) : '') + '</div>';
+    return '';
+  };
+  orderShowThis = function (o) { return o.pay === 'online' && o.paid ? t('paidShow') : (o.pay === 'online' ? '' : t('showThis')); };
+  // 付款完成後才把訂單內容傳到 LINE 聊天室（每張單只傳一次）
+  function maybeSend(o) {
+    if (!o || o.pay !== 'online' || !o.paid || load('w24_sent_' + o.id, 0)) return;
+    save('w24_sent_' + o.id, 1); sendToLine(o);
+  }
+  function goPay(url) {
+    toast(t('toPay'));
+    setTimeout(function () { location.href = url; }, 300);
+  }
+  // 從雷門回來：主動問伺服器付款結果（callback 可能比客人晚到），最多問 5 次
+  function checkPaid(id, n) {
+    n = n || 0;
+    return api({ action: 'payCheck', id: id }).then(function (j) {
+      if (!j.ok || !j.order) return;
+      var o = norm(j.order), i = ORDERS.findIndex(function (x) { return x.id === o.id; });
+      if (i >= 0) ORDERS[i] = o; else ORDERS.unshift(o);
+      if (o.status === 'unpaid' && n < 4) { setTimeout(function () { checkPaid(id, n + 1); }, 3000); }
+      else if (o.status === 'unpaid') S.payFail = id;
+      maybeSend(o); refreshUI();
+    }).catch(function () {});
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var a = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+    if (a === 'paymode') { S.payMode = b.getAttribute('data-v'); save('w24_pay', S.payMode); render(); }
+    else if (a === 'paynow') {
+      if (BUSY) return; BUSY = true; b.disabled = true;
+      api({ action: 'pay', id: id }).then(function (j) {
+        BUSY = false;
+        if (j.ok && j.payUrl) return goPay(j.payUrl);
+        if (j.ok && j.order) { var o = norm(j.order); ORDERS = ORDERS.map(function (x) { return x.id === o.id ? o : x; }); maybeSend(o); render(); return; }
+        toast(errText(j.error || '')); render();
+      }).catch(function () { BUSY = false; toast('網路不穩，請再試一次'); render(); });
+    }
+    else if (a === 'paycancel') {
+      if (BUSY || !confirm(t('cancelAsk'))) return; BUSY = true; b.disabled = true;
+      api({ action: 'cancel', id: id }).then(function (j) {
+        BUSY = false;
+        if (j.ok && j.order) { var o = norm(j.order); ORDERS = ORDERS.map(function (x) { return x.id === o.id ? o : x; }); maybeSend(o); }
+        else toast(errText(j.error || ''));
+        render();
+      }).catch(function () { BUSY = false; toast('網路不穩，請再試一次'); render(); });
+    }
+  });
 
   function api(body) {
     return fetch(LIVE.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -982,6 +1169,7 @@ if (LIVE.url) (function () {
     });
     return { id: c.id, no: c.no, name: c.name, phone: c.phone, pickup: toMin(c.pickup), asap: c.asap, items: c.items,
              gift: c.gift || null, giftOpt: c.giftOpt || '', opts: o, optsText: c.opts, note: c.note, total: c.total, status: c.status, day: todayKey(),
+             pay: c.pay || 'cash', paid: !!c.paid, payTypeName: c.payTypeName || '', refunded: c.refunded || 0,
              createdMs: c.created ? new Date(String(c.created).replace(' ', 'T') + '+08:00').getTime() : 0 };
   }
   // 雲端錯誤訊息 → 客人選的語言
@@ -1006,6 +1194,7 @@ if (LIVE.url) (function () {
   lineMessage = (function (orig) {
     return function (o) {
       var txt = orig(o), link = LIVE.liffId ? 'https://liff.line.me/' + LIVE.liffId + '?order=' + o.id : location.href.split('#')[0] + '#/order/' + o.id;
+      if (o.pay === 'online') txt = txt.replace('（取餐時付現）', o.paid ? '（已線上付款' + (o.payTypeName ? ' ' + o.payTypeName : '') + '）' : '（待付款）');
       return txt.replace(/查看訂單：.*$/, '查看訂單：' + link);
     };
   })(lineMessage);
@@ -1025,13 +1214,13 @@ if (LIVE.url) (function () {
     if (!/^09\d{8}$/.test(phone)) { S.error = t('ePhone'); return render(); }
     BUSY = true;
     var btn = document.querySelector('[data-act="submit"]'); if (btn) { btn.disabled = true; btn.textContent = '…'; }
-    var body = { action: 'order', name: name, phone: phone, saveDefault: !!S.saveDef, note: (S.note || '').trim(), opts: S.opts,
+    var body = { action: 'order', pay: payMode(), name: name, phone: phone, saveDefault: !!S.saveDef, note: (S.note || '').trim(), opts: S.opts,
           pickup: S.pickMode === 'asap' ? 'asap' : hm(Number(S.slot)),
           giftOpt: giftIsDrink() ? optJoin(S.giftOpt || {}) : '',
           items: cartLines().map(function (l) { return l.opt ? { id: l.it.id, qty: l.qty, opt: l.opt } : { id: l.it.id, qty: l.qty }; })
             .concat(addonLines().map(function (a) { return { id: a.id, qty: a.qty }; })) };
     // 送單編號：內容一樣的重送用同一個編號，雲端只會建一張（網路慢時客人再按一次也不會變兩張）
-    var sig = JSON.stringify([body.items, body.pickup, body.name, body.phone, body.note, body.opts]);
+    var sig = JSON.stringify([body.items, body.pickup, body.name, body.phone, body.note, body.opts, body.pay]);
     if (S.reqSig !== sig || !S.reqId) { S.reqSig = sig; S.reqId = 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
     body.reqId = S.reqId;
     var total0 = payTotal(false), started = Date.now();
@@ -1046,12 +1235,13 @@ if (LIVE.url) (function () {
         S.error = msg; render();
       }).catch(function () { BUSY = false; S.error = msg; render(); });
     }
-    function finish(o) {
+    function finish(o, payUrl) {
       if (S.saveDef) PROFILE = { name: name, phone: phone };
       S.cart = {}; saveCart(); S.note = ''; S.form = null; S.pickMode = 'asap'; S.slot = null; S.reqId = null; S.reqSig = null; S.giftOpt = {}; S.addons = {}; S.halfAsked = false;
       OPTIONS.forEach(function (x) { S.opts[x.key] = x.def; });
       if (!ORDERS.some(function (x) { return x.id === o.id; })) ORDERS.unshift(o);
-      sendToLine(o);
+      if (payUrl) { go('#/order/' + o.id); goPay(payUrl); return; }     // 線上付款：付完才傳 LINE 訊息
+      if (o.pay !== 'online') sendToLine(o);
       go('#/order/' + o.id);
     }
     var UNSURE = '網路不穩，訂單可能已經送出。請先按右上角「我的訂單」確認，沒有看到再重新送出。';
@@ -1066,7 +1256,7 @@ if (LIVE.url) (function () {
         } else S.error = errText(j.error || '');
         return render();
       }
-      finish(norm(j.order));
+      finish(norm(j.order), j.payUrl);
     })
     .catch(function () { recover(UNSURE); });
   };
@@ -1093,6 +1283,7 @@ if (LIVE.url) (function () {
       }
       ['en', 'vi', 'th'].forEach(function (L) { I18N[L] = Object.assign(I18N[L] || {}, (m.i18n || {})[L] || {}); });
       if (j.noteMax) NOTE_MAX = j.noteMax;
+      if (j.pay) PAYM = j.pay;
       if (!LIVE.liffId && j.liffId && !j.test) LIVE.liffId = j.liffId;
     });
   }
@@ -1100,6 +1291,7 @@ if (LIVE.url) (function () {
     return api({ action: 'myOrders' }).then(function (j) {
       if (!j.ok) return;
       ORDERS = j.orders.map(norm);
+      ORDERS.forEach(maybeSend);
       if (j.shop) SHOP = j.shop;
     });
   }
@@ -1114,7 +1306,7 @@ if (LIVE.url) (function () {
       READY = true;
       // 從 LINE 圖文選單或訊息連結開啟：?order=訂單編號 → 那張單；?page=orders → 我的訂單
       var sp = new URLSearchParams(location.search), q = sp.get('order');
-      if (q) go('#/order/' + q); else if (sp.get('page') === 'orders') go('#/orders'); else render();
+      if (q) { go('#/order/' + q); if (sp.get('paid')) checkPaid(q); } else if (sp.get('page') === 'orders') go('#/orders'); else render();
     }).catch(function () { SHOP = { state: 'offline', queue: 0 }; READY = true; render(); });
     setInterval(function () { loadMenu().then(refreshUI); }, 30000);
     setInterval(function () {
