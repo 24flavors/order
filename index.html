@@ -266,7 +266,7 @@ textarea{min-height:76px;resize:vertical}
 // ══════════════ 正式上線設定 ══════════════
 //   API_URL：雲端訂單中心的網址（Apps Script 部署後的 …/exec）。留空＝試玩模式（訂單只存在手機）
 //   LIFF_ID：LINE Login channel 裡 LIFF 的 ID。留空＝用瀏覽器測試（雲端要開 TEST_MODE）
-var LIVE = { url: 'https://script.google.com/macros/s/AKfycbzw2o8UWTZHzgajr9oFeae4-xuBOFCG-DQnUYewOFhmY7s-DWFtFHCXnljX3KbJmCCA/exec', liffId: '2011807465-an0fUe9V' };
+var LIVE = { url: 'https://111.miguos.com/api/v1', liffId: '2011807465-an0fUe9V' };
 // ═════════════════════════════════════════
 var OPEN_MIN = 16 * 60 + 30;   // 16:30 開始取餐
 var LAST_MIN = 23 * 60 + 30;   // 23:30 最後取餐
@@ -409,6 +409,9 @@ function portion(it){
 }
 function isSold(it){ return !!(it.sold || DEMO.sold[it.id]); }
 function canOrder(it){ return !it.coming && !isSold(it); }
+// 照片：伺服器後台上傳過的用伺服器網址；原本的照片用頁面內建的；都沒有就用 24味 暫時圖
+var NOIMG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#efe6d6"/><text x="50" y="58" font-size="22" text-anchor="middle" fill="#a8916b" font-family="sans-serif" font-weight="700">24味</text></svg>');
+function imgOf(it){ return (it && (it.img || IMGS[it.id])) || NOIMG; }
 function item(id){ for (var i = 0; i < MENU.length; i++) if (MENU[i].id === id) return MENU[i]; return null; }
 function money(n){ return '$' + Number(n).toLocaleString('en-US'); }
 function hm(min){ min = ((min % 1440) + 1440) % 1440; var h = Math.floor(min / 60), m = min % 60; return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
@@ -556,7 +559,7 @@ function promoHints(){
 }
 function promoTile(id, deal){
   var it = item(String(id)); if (!it || !canOrder(it)) return '';
-  return '<button type="button" class="ptile" data-act="' + (isDrink(it) ? 'drink' : 'inc') + '" data-id="' + it.id + '"><img src="' + IMGS[it.id] + '" alt=""><span>' + esc(iname(it)) + '<br>' +
+  return '<button type="button" class="ptile" data-act="' + (isDrink(it) ? 'drink' : 'inc') + '" data-id="' + it.id + '"><img src="' + imgOf(it) + '" alt=""><span>' + esc(iname(it)) + '<br>' +
     (deal ? '<s>' + money(it.price) + '</s><em>' + money(Math.round(it.price * deal / 100)) + '</em>' : '<em>' + money(it.price) + '</em>') + '</span></button>';
 }
 function recItems(){
@@ -737,7 +740,7 @@ function viewMenu(){
     if (S.cat !== 'all' && it.cat !== S.cat) return;
     var q = idQty(it.id), sold = isSold(it), ok = canOrder(it), dk = isDrink(it);
     h += '<li class="card-i' + (!ok ? ' sold' : '') + '">';
-    h += '<div class="pic"><img src="' + IMGS[it.id] + '" alt="' + esc(iname(it)) + '" loading="lazy">' +
+    h += '<div class="pic"><img src="' + imgOf(it) + '" alt="' + esc(iname(it)) + '" loading="lazy">' +
       (it.hot && ok ? '<span class="hotbadge"><span class="fire">🔥</span>' + esc(tr('人氣')) + '</span>' : '') +
       (ok && it.rem != null && it.rem > 0 && it.rem <= 5 ? '<span class="rembadge">' + esc(tr('剩 {n} 份').replace('{n}', it.rem)) + '</span>' : '') +
       (q > 0 && ok ? '<span class="qbadge">' + q + '</span>' : '') +
